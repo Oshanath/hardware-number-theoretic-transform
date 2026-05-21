@@ -1,0 +1,35 @@
+toplevel: "four_bit_adder_tb"
+name: NTT
+files:
+  - name: "modules/full_adder.v"
+    file_type: "verilogSource"
+    is_include_file: false
+  - name: "modules/full_subtractor.v"
+    file_type: "verilogSource"
+    is_include_file: false
+  - name: "modules/n_bit_adder.v"
+    file_type: "verilogSource"
+    is_include_file: false
+  - name: "modules/n_bit_subtractor.v"
+    file_type: "verilogSource"
+    is_include_file: false
+  - name: "modules/modular_adder.v"
+    file_type: "verilogSource"
+    is_include_file: false
+  - name: "testbenches/full_adder_tb.v"
+    file_type: "verilogSource"
+    is_include_file: false
+  - name: "testbenches/4_bit_adder_tb.v"
+    file_type: "verilogSource"
+    is_include_file: false
+  - name: "testbenches/full_subtractor_tb.v"
+    file_type: "verilogSource"
+    is_include_file: false
+  - name: "testbenches/n_bit_subtractor_tb.v"
+    file_type: "verilogSource"
+    is_include_file: false
+tool_options:
+  icarus:
+    installation_path: "F:/Projects/CanonWeaver/oss-cad-suite/bin"
+    iverilog_options: ""
+    timescale: ""
