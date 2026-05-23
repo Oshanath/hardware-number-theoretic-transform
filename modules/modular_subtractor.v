@@ -9,6 +9,7 @@ module modular_subtractor # (
 
 wire [width-1:0] a_reduced;
 wire [width-1:0] b_reduced;
+localparam [width-1:0] modulus_sized = modulus[width-1:0];
 
 modular_reducer # (
     .width(width),
@@ -26,14 +27,14 @@ modular_reducer # (
     .xmodn(b_reduced)
 );
 
-wire [width-1:0] a_temp;
+reg [width-1:0] a_temp;
 wire [width-1:0] a_added;
 
 n_bit_adder # (
     .width(width)
 ) adder_a_temp (
     .a(a_reduced),
-    .b(modulus),
+    .b(modulus_sized),
     .s(a_added)
 );
 
