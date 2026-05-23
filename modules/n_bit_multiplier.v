@@ -1,5 +1,7 @@
+`timescale 1ns/1ps
+
 module n_bit_multiplier #(
-    parameter width = 3
+    parameter width = 16
 )(
     input [width - 1:0] a,
     input [width - 1:0] b,
@@ -7,37 +9,37 @@ module n_bit_multiplier #(
     output overflow
 );
 
+    wire [(2 * width) - 1:0] partial_products [0:width - 1];
+    wire [(2 * width) - 1:0] partial_sums [0:width - 1];
+
     generate
-        wire[width-1:0][width-1:0] carries;
-        for (genvar i = 0; i < width - 1; i = i + 1) begin
-            wire [i:0] products;
-            for (genvar j = 0; j < i + 1; j = j + 1) begin
-                assign products[j] = a[i - j] & b[j];
-            end
-            localparam int adders = i;
-            if (adders == 0) begin
-                assign p[i] = products[0];
-            end else begin
-                wire [adders:0] sums;
-                assign sums[0] = products[0];
-                for (genvar k = 0; k < adders; k = k + 1) begin
-                    wire cin_local;
-                    if (k == i-1) begin
-                        assign cin_local = 1'b0;
-                    end else begin
-                        assign cin_local = carries[i][k];
-                    end
-                    full_adder fa(
-                        .a(sums[k]),
-                        .b(products[k+1]),
-                        .cin(cin_local),
-                        .s(sums[k+1]),
-                        .cout(carries[i+1][k])
-                    );
+        for (genvar i = 0; i < width; i = i + 1) begin : gen_partial_product_rows
+            for (genvar j = 0; j < 2 * width; j = j + 1) begin : gen_partial_product_bits
+                if ((j >= i) && (j < i + width)) begin
+                    assign partial_products[i][j] = a[j - i] & b[i];
+                end else begin
+                    assign partial_products[i][j] = 1'b0;
                 end
-                assign p[i] = sums[adders];
             end
         end
+
+        assign partial_sums[0] = partial_products[0];
+
+        for (genvar i = 1; i < width; i = i + 1) begin : gen_partial_product_adders
+            wire unused_cout;
+
+            n_bit_adder #(
+                .width(2 * width)
+            ) partial_product_adder (
+                .a(partial_sums[i - 1]),
+                .b(partial_products[i]),
+                .s(partial_sums[i]),
+                .cout(unused_cout)
+            );
+        end
     endgenerate
+
+    assign p = partial_sums[width - 1][width - 1:0];
+    assign overflow = |partial_sums[width - 1][(2 * width) - 1:width];
 
 endmodule
