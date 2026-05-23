@@ -1,0 +1,2 @@
+- When asked to generate testbenches, don't change any modules. If you find a bug in a module, stop working and explain the bug.
+- When writing testbenches, always print each testcase.
