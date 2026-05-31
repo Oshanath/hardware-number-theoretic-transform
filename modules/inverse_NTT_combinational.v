@@ -1,4 +1,4 @@
-module ntt_combinational # (
+module inverse_ntt_combinational # (
     parameter width = 10,
     parameter modulus = 17,
     parameter root = 9,

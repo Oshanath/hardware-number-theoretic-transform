@@ -24,11 +24,11 @@ modular_reducer # (
     .xmodn(b_reduced)
 );
 
-wire [width-1:0] p_temp;
+wire [width*2-1:0] p_temp;
 assign p_temp = a_reduced * b_reduced;
 
 modular_reducer # (
-    .width(width),
+    .width(width*2),
     .modulus(modulus)
 ) mrp (
     .x(p_temp),
