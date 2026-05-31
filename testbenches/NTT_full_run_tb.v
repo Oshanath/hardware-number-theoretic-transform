@@ -18,6 +18,8 @@ module NTT_full_run_tb;
     integer cycles;
     integer last_stage;
 
+    localparam [1:0] STATE_PROCESS = 2'd2;
+
     NTT dut_default (
         .clk(clk),
         .en_in(en_in_default),
@@ -79,7 +81,7 @@ module NTT_full_run_tb;
             wait_cycle;
             en_in_default = 1'b0;
 
-            wait (dut_default.started && !dut_default.loading);
+            wait (dut_default.state == STATE_PROCESS);
             last_stage = dut_default.stage_counter;
             cycles = 0;
             while (!en_out_default && cycles < 100) begin
@@ -93,8 +95,8 @@ module NTT_full_run_tb;
             print_default_stage(name, last_stage);
 
             $display("TESTCASE %0s output", name);
-            $display("  cycles=%0d loading=%0b started=%0b stage_counter=%0d butterfly_counter=%0d en_out=%0b",
-                cycles, dut_default.loading, dut_default.started,
+            $display("  cycles=%0d state=%0d stage_counter=%0d butterfly_counter=%0d en_out=%0b",
+                cycles, dut_default.state,
                 dut_default.stage_counter, dut_default.butterfly_counter, en_out_default);
             for (i = 0; i < 8; i = i + 1) begin
                 $display("  input[%0d]=%0d output t[%0d]=%0d output butterfly_results[%0d]=%0d",
@@ -109,8 +111,8 @@ module NTT_full_run_tb;
         begin
             $display("TESTCASE %0s stage %0d", name, completed_stage);
             for (i = 0; i < 8; i = i + 1) begin
-                $display("  loading=%0b stage_counter=%0d butterfly_counter=%0d output butterfly_results[%0d]=%0d",
-                    dut_default.loading, dut_default.stage_counter,
+                $display("  state=%0d stage_counter=%0d butterfly_counter=%0d output butterfly_results[%0d]=%0d",
+                    dut_default.state, dut_default.stage_counter,
                     dut_default.butterfly_counter, i, dut_default.butterfly_results[i]);
             end
         end
@@ -129,7 +131,7 @@ module NTT_full_run_tb;
             wait_cycle;
             en_in_wide = 1'b0;
 
-            wait (dut_wide.started && !dut_wide.loading);
+            wait (dut_wide.state == STATE_PROCESS);
             last_stage = dut_wide.stage_counter;
             cycles = 0;
             while (!en_out_wide && cycles < 100) begin
@@ -143,8 +145,8 @@ module NTT_full_run_tb;
             print_wide_stage(name, last_stage);
 
             $display("TESTCASE %0s output", name);
-            $display("  cycles=%0d loading=%0b started=%0b stage_counter=%0d butterfly_counter=%0d en_out=%0b",
-                cycles, dut_wide.loading, dut_wide.started,
+            $display("  cycles=%0d state=%0d stage_counter=%0d butterfly_counter=%0d en_out=%0b",
+                cycles, dut_wide.state,
                 dut_wide.stage_counter, dut_wide.butterfly_counter, en_out_wide);
             for (i = 0; i < 8; i = i + 1) begin
                 $display("  input[%0d]=%0d output t[%0d]=%0d output butterfly_results[%0d]=%0d",
@@ -159,8 +161,8 @@ module NTT_full_run_tb;
         begin
             $display("TESTCASE %0s stage %0d", name, completed_stage);
             for (i = 0; i < 8; i = i + 1) begin
-                $display("  loading=%0b stage_counter=%0d butterfly_counter=%0d output butterfly_results[%0d]=%0d",
-                    dut_wide.loading, dut_wide.stage_counter,
+                $display("  state=%0d stage_counter=%0d butterfly_counter=%0d output butterfly_results[%0d]=%0d",
+                    dut_wide.state, dut_wide.stage_counter,
                     dut_wide.butterfly_counter, i, dut_wide.butterfly_results[i]);
             end
         end

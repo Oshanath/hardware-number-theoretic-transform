@@ -16,6 +16,8 @@ module NTT_one_stage_tb;
 
     integer i;
 
+    localparam [1:0] STATE_PROCESS = 2'd2;
+
     NTT dut_default (
         .clk(clk),
         .en_in(en_in_default),
@@ -69,8 +71,8 @@ module NTT_one_stage_tb;
         begin
             $display("TESTCASE %0s", label_text);
             for (i = 0; i < 8; i = i + 1) begin
-                $display("  loading=%0b stage_counter=%0d butterfly_counter=%0d input[%0d]=%0d output butterfly_results[%0d]=%0d",
-                    dut_default.loading, dut_default.stage_counter, dut_default.butterfly_counter,
+                $display("  state=%0d stage_counter=%0d butterfly_counter=%0d input[%0d]=%0d output butterfly_results[%0d]=%0d",
+                    dut_default.state, dut_default.stage_counter, dut_default.butterfly_counter,
                     i, a_default[i], i, dut_default.butterfly_results[i]);
             end
         end
@@ -81,8 +83,8 @@ module NTT_one_stage_tb;
         begin
             $display("TESTCASE %0s", label_text);
             for (i = 0; i < 8; i = i + 1) begin
-                $display("  loading=%0b stage_counter=%0d butterfly_counter=%0d input[%0d]=%0d output butterfly_results[%0d]=%0d",
-                    dut_wide.loading, dut_wide.stage_counter, dut_wide.butterfly_counter,
+                $display("  state=%0d stage_counter=%0d butterfly_counter=%0d input[%0d]=%0d output butterfly_results[%0d]=%0d",
+                    dut_wide.state, dut_wide.stage_counter, dut_wide.butterfly_counter,
                     i, a_wide[i], i, dut_wide.butterfly_results[i]);
             end
         end
@@ -100,7 +102,7 @@ module NTT_one_stage_tb;
             wait_cycle;
             en_in_default = 1'b0;
 
-            wait (dut_default.started && !dut_default.loading);
+            wait (dut_default.state == STATE_PROCESS);
 
             while (dut_default.stage_counter == 0) begin
                 wait_cycle;
@@ -122,7 +124,7 @@ module NTT_one_stage_tb;
             wait_cycle;
             en_in_wide = 1'b0;
 
-            wait (dut_wide.started && !dut_wide.loading);
+            wait (dut_wide.state == STATE_PROCESS);
 
             while (dut_wide.stage_counter == 0) begin
                 wait_cycle;
