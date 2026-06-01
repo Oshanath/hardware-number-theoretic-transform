@@ -16,13 +16,15 @@ module NTT_mem_load_test;
     reg en_in8;
     reg en_in16;
 
-    reg [N8-1:0][WIDTH8-1:0] a8;
+    reg [WIDTH8-1:0] a8;
+    reg [N8-1:0][WIDTH8-1:0] a8_values;
     wire en_out8;
-    wire [N8-1:0][WIDTH8-1:0] t8;
+    wire [WIDTH8-1:0] t8;
 
-    reg [N16-1:0][WIDTH16-1:0] a16;
+    reg [WIDTH16-1:0] a16;
+    reg [N16-1:0][WIDTH16-1:0] a16_values;
     wire en_out16;
-    wire [N16-1:0][WIDTH16-1:0] t16;
+    wire [WIDTH16-1:0] t16;
 
     integer i;
     integer errors;
@@ -64,6 +66,8 @@ module NTT_mem_load_test;
         en_in16 = 1'b0;
         a8 = '0;
         a16 = '0;
+        a8_values = '0;
+        a16_values = '0;
         errors = 0;
 
         #2;
@@ -106,28 +110,27 @@ module NTT_mem_load_test;
             $display("TESTCASE %0s", name);
 
             for (i = 0; i < N8; i = i + 1) begin
-                a8[i] = (i * 3 + 1) % MODULUS8;
+                a8_values[i] = (i * 3 + 1) % MODULUS8;
                 $display("  input[%0d]=%0d -> expected ram[%0d]",
-                    i, a8[i], bit_reverse_index(i, 3));
-            end
-
-            en_in8 = 1'b1;
-            wait_cycle;
-            en_in8 = 1'b0;
-
-            repeat ((N8 / 2) + 1) begin
-                wait_cycle;
+                    i, a8_values[i], bit_reverse_index(i, 3));
             end
 
             for (i = 0; i < N8; i = i + 1) begin
+                a8 = a8_values[i];
+                en_in8 = 1'b1;
+                wait_cycle;
+            end
+            en_in8 = 1'b0;
+
+            for (i = 0; i < N8; i = i + 1) begin
                 expected_index = bit_reverse_index(i, 3);
-                if (dut8.ram.mem[expected_index] !== a8[i]) begin
+                if (dut8.ram.mem[expected_index] !== a8_values[i]) begin
                     $display("FAIL %0s output ram[%0d]=%0d expected input[%0d]=%0d",
-                        name, expected_index, dut8.ram.mem[expected_index], i, a8[i]);
+                        name, expected_index, dut8.ram.mem[expected_index], i, a8_values[i]);
                     errors = errors + 1;
                 end else begin
                     $display("PASS %0s output ram[%0d]=%0d expected input[%0d]=%0d",
-                        name, expected_index, dut8.ram.mem[expected_index], i, a8[i]);
+                        name, expected_index, dut8.ram.mem[expected_index], i, a8_values[i]);
                 end
             end
         end
@@ -140,28 +143,27 @@ module NTT_mem_load_test;
             $display("TESTCASE %0s", name);
 
             for (i = 0; i < N16; i = i + 1) begin
-                a16[i] = (i * 7 + 4) % MODULUS16;
+                a16_values[i] = (i * 7 + 4) % MODULUS16;
                 $display("  input[%0d]=%0d -> expected ram[%0d]",
-                    i, a16[i], bit_reverse_index(i, 4));
-            end
-
-            en_in16 = 1'b1;
-            wait_cycle;
-            en_in16 = 1'b0;
-
-            repeat ((N16 / 2) + 1) begin
-                wait_cycle;
+                    i, a16_values[i], bit_reverse_index(i, 4));
             end
 
             for (i = 0; i < N16; i = i + 1) begin
+                a16 = a16_values[i];
+                en_in16 = 1'b1;
+                wait_cycle;
+            end
+            en_in16 = 1'b0;
+
+            for (i = 0; i < N16; i = i + 1) begin
                 expected_index = bit_reverse_index(i, 4);
-                if (dut16.ram.mem[expected_index] !== a16[i]) begin
+                if (dut16.ram.mem[expected_index] !== a16_values[i]) begin
                     $display("FAIL %0s output ram[%0d]=%0d expected input[%0d]=%0d",
-                        name, expected_index, dut16.ram.mem[expected_index], i, a16[i]);
+                        name, expected_index, dut16.ram.mem[expected_index], i, a16_values[i]);
                     errors = errors + 1;
                 end else begin
                     $display("PASS %0s output ram[%0d]=%0d expected input[%0d]=%0d",
-                        name, expected_index, dut16.ram.mem[expected_index], i, a16[i]);
+                        name, expected_index, dut16.ram.mem[expected_index], i, a16_values[i]);
                 end
             end
         end

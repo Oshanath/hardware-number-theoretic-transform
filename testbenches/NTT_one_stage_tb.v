@@ -6,17 +6,19 @@ module NTT_one_stage_tb;
     reg en_in_default;
     reg en_in_wide;
 
-    reg [7:0][15:0] a_default;
+    reg [15:0] a_default;
+    reg [7:0][15:0] a_default_values;
     wire en_out_default;
-    wire [7:0][15:0] t_default;
+    wire [15:0] t_default;
 
-    reg [7:0][19:0] a_wide;
+    reg [19:0] a_wide;
+    reg [7:0][19:0] a_wide_values;
     wire en_out_wide;
-    wire [7:0][19:0] t_wide;
+    wire [19:0] t_wide;
 
     integer i;
 
-    localparam [1:0] STATE_PROCESS = 2'd2;
+    localparam [2:0] STATE_PROCESS = 3'd2;
 
     NTT dut_default (
         .clk(clk),
@@ -50,6 +52,8 @@ module NTT_one_stage_tb;
         en_in_wide = 1'b0;
         a_default = '0;
         a_wide = '0;
+        a_default_values = '0;
+        a_wide_values = '0;
 
         #2;
 
@@ -73,7 +77,7 @@ module NTT_one_stage_tb;
             for (i = 0; i < 8; i = i + 1) begin
                 $display("  state=%0d stage_counter=%0d butterfly_counter=%0d input[%0d]=%0d output butterfly_results[%0d]=%0d",
                     dut_default.state, dut_default.stage_counter, dut_default.butterfly_counter,
-                    i, a_default[i], i, dut_default.butterfly_results[i]);
+                    i, a_default_values[i], i, dut_default.butterfly_results[i]);
             end
         end
     endtask
@@ -85,7 +89,7 @@ module NTT_one_stage_tb;
             for (i = 0; i < 8; i = i + 1) begin
                 $display("  state=%0d stage_counter=%0d butterfly_counter=%0d input[%0d]=%0d output butterfly_results[%0d]=%0d",
                     dut_wide.state, dut_wide.stage_counter, dut_wide.butterfly_counter,
-                    i, a_wide[i], i, dut_wide.butterfly_results[i]);
+                    i, a_wide_values[i], i, dut_wide.butterfly_results[i]);
             end
         end
     endtask
@@ -94,12 +98,15 @@ module NTT_one_stage_tb;
         begin
             $display("TESTCASE default parameters one stage setup");
             for (i = 0; i < 8; i = i + 1) begin
-                a_default[i] = i + 1;
-                $display("  input[%0d]=%0d", i, a_default[i]);
+                a_default_values[i] = i + 1;
+                $display("  input[%0d]=%0d", i, a_default_values[i]);
             end
 
-            en_in_default = 1'b1;
-            wait_cycle;
+            for (i = 0; i < 8; i = i + 1) begin
+                a_default = a_default_values[i];
+                en_in_default = 1'b1;
+                wait_cycle;
+            end
             en_in_default = 1'b0;
 
             wait (dut_default.state == STATE_PROCESS);
@@ -116,12 +123,15 @@ module NTT_one_stage_tb;
         begin
             $display("TESTCASE width=20 one stage setup");
             for (i = 0; i < 8; i = i + 1) begin
-                a_wide[i] = i + 1;
-                $display("  input[%0d]=%0d", i, a_wide[i]);
+                a_wide_values[i] = i + 1;
+                $display("  input[%0d]=%0d", i, a_wide_values[i]);
             end
 
-            en_in_wide = 1'b1;
-            wait_cycle;
+            for (i = 0; i < 8; i = i + 1) begin
+                a_wide = a_wide_values[i];
+                en_in_wide = 1'b1;
+                wait_cycle;
+            end
             en_in_wide = 1'b0;
 
             wait (dut_wide.state == STATE_PROCESS);

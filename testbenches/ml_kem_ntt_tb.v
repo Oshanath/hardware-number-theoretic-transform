@@ -20,13 +20,17 @@ module ml_kem_ntt_tb;
     reg kyber_inverse;
     reg small_inverse;
 
+    reg [KYBER_WIDTH-1:0] kyber_a_in;
     reg [KYBER_N-1:0][KYBER_WIDTH-1:0] kyber_a;
+    reg [KYBER_N-1:0][KYBER_WIDTH-1:0] kyber_t;
     wire kyber_en_out;
-    wire [KYBER_N-1:0][KYBER_WIDTH-1:0] kyber_t;
+    wire [KYBER_WIDTH-1:0] kyber_t_out;
 
+    reg [SMALL_WIDTH-1:0] small_a_in;
     reg [SMALL_N-1:0][SMALL_WIDTH-1:0] small_a;
+    reg [SMALL_N-1:0][SMALL_WIDTH-1:0] small_t;
     wire small_en_out;
-    wire [SMALL_N-1:0][SMALL_WIDTH-1:0] small_t;
+    wire [SMALL_WIDTH-1:0] small_t_out;
 
     integer kyber_expected [0:KYBER_N-1];
     integer small_expected [0:SMALL_N-1];
@@ -42,9 +46,9 @@ module ml_kem_ntt_tb;
         .clk(clk),
         .en_in(kyber_en_in),
         .inverse_(kyber_inverse),
-        .a(kyber_a),
+        .a(kyber_a_in),
         .en_out(kyber_en_out),
-        .t(kyber_t)
+        .t(kyber_t_out)
     );
 
     NTT #(
@@ -57,9 +61,9 @@ module ml_kem_ntt_tb;
         .clk(clk),
         .en_in(small_en_in),
         .inverse_(small_inverse),
-        .a(small_a),
+        .a(small_a_in),
         .en_out(small_en_out),
-        .t(small_t)
+        .t(small_t_out)
     );
 
     always #5 clk = ~clk;
@@ -70,8 +74,12 @@ module ml_kem_ntt_tb;
         small_en_in = 1'b0;
         kyber_inverse = 1'b0;
         small_inverse = 1'b0;
+        kyber_a_in = '0;
+        small_a_in = '0;
         kyber_a = '0;
         small_a = '0;
+        kyber_t = '0;
+        small_t = '0;
         errors = 0;
 
         #2;
@@ -301,6 +309,7 @@ module ml_kem_ntt_tb;
         integer failed;
         integer next_coeff;
         integer cycles;
+        integer output_count;
         begin
             for (i = 0; i < KYBER_N; i = i + 1) begin
                 next_coeff = kyber_coeff(testcase, i);
@@ -310,18 +319,26 @@ module ml_kem_ntt_tb;
             calculate_kyber_expected();
 
             kyber_inverse = 1'b0;
-            kyber_en_in = 1'b1;
-            wait_cycle();
+            for (i = 0; i < KYBER_N; i = i + 1) begin
+                kyber_a_in = kyber_a[i];
+                kyber_en_in = 1'b1;
+                wait_cycle();
+            end
             kyber_en_in = 1'b0;
 
             cycles = 0;
-            while (!kyber_en_out && cycles < 10000) begin
+            output_count = 0;
+            while (output_count < KYBER_N && cycles < 10000) begin
                 wait_cycle();
                 cycles = cycles + 1;
+                if (kyber_en_out) begin
+                    kyber_t[output_count] = kyber_t_out;
+                    output_count = output_count + 1;
+                end
             end
 
             failed = 0;
-            if (!kyber_en_out) begin
+            if (output_count != KYBER_N) begin
                 failed = 1;
             end
             for (i = 0; i < KYBER_N; i = i + 1) begin
@@ -347,6 +364,7 @@ module ml_kem_ntt_tb;
         integer failed;
         integer next_coeff;
         integer cycles;
+        integer output_count;
         begin
             for (i = 0; i < SMALL_N; i = i + 1) begin
                 next_coeff = small_coeff(testcase, i);
@@ -356,18 +374,26 @@ module ml_kem_ntt_tb;
             calculate_small_expected();
 
             small_inverse = 1'b0;
-            small_en_in = 1'b1;
-            wait_cycle();
+            for (i = 0; i < SMALL_N; i = i + 1) begin
+                small_a_in = small_a[i];
+                small_en_in = 1'b1;
+                wait_cycle();
+            end
             small_en_in = 1'b0;
 
             cycles = 0;
-            while (!small_en_out && cycles < 1000) begin
+            output_count = 0;
+            while (output_count < SMALL_N && cycles < 1000) begin
                 wait_cycle();
                 cycles = cycles + 1;
+                if (small_en_out) begin
+                    small_t[output_count] = small_t_out;
+                    output_count = output_count + 1;
+                end
             end
 
             failed = 0;
-            if (!small_en_out) begin
+            if (output_count != SMALL_N) begin
                 failed = 1;
             end
             for (i = 0; i < SMALL_N; i = i + 1) begin
@@ -401,6 +427,7 @@ module ml_kem_ntt_tb;
         integer failed;
         integer next_coeff;
         integer cycles;
+        integer output_count;
         begin
             for (i = 0; i < KYBER_N; i = i + 1) begin
                 next_coeff = kyber_coeff(testcase, i);
@@ -410,18 +437,26 @@ module ml_kem_ntt_tb;
             calculate_kyber_inverse_expected();
 
             kyber_inverse = 1'b1;
-            kyber_en_in = 1'b1;
-            wait_cycle();
+            for (i = 0; i < KYBER_N; i = i + 1) begin
+                kyber_a_in = kyber_a[i];
+                kyber_en_in = 1'b1;
+                wait_cycle();
+            end
             kyber_en_in = 1'b0;
 
             cycles = 0;
-            while (!kyber_en_out && cycles < 10000) begin
+            output_count = 0;
+            while (output_count < KYBER_N && cycles < 10000) begin
                 wait_cycle();
                 cycles = cycles + 1;
+                if (kyber_en_out) begin
+                    kyber_t[output_count] = kyber_t_out;
+                    output_count = output_count + 1;
+                end
             end
 
             failed = 0;
-            if (!kyber_en_out) begin
+            if (output_count != KYBER_N) begin
                 failed = 1;
             end
             for (i = 0; i < KYBER_N; i = i + 1) begin
@@ -449,6 +484,7 @@ module ml_kem_ntt_tb;
         integer failed;
         integer next_coeff;
         integer cycles;
+        integer output_count;
         begin
             for (i = 0; i < SMALL_N; i = i + 1) begin
                 next_coeff = small_coeff(testcase, i);
@@ -458,18 +494,26 @@ module ml_kem_ntt_tb;
             calculate_small_inverse_expected();
 
             small_inverse = 1'b1;
-            small_en_in = 1'b1;
-            wait_cycle();
+            for (i = 0; i < SMALL_N; i = i + 1) begin
+                small_a_in = small_a[i];
+                small_en_in = 1'b1;
+                wait_cycle();
+            end
             small_en_in = 1'b0;
 
             cycles = 0;
-            while (!small_en_out && cycles < 1000) begin
+            output_count = 0;
+            while (output_count < SMALL_N && cycles < 1000) begin
                 wait_cycle();
                 cycles = cycles + 1;
+                if (small_en_out) begin
+                    small_t[output_count] = small_t_out;
+                    output_count = output_count + 1;
+                end
             end
 
             failed = 0;
-            if (!small_en_out) begin
+            if (output_count != SMALL_N) begin
                 failed = 1;
             end
             for (i = 0; i < SMALL_N; i = i + 1) begin
