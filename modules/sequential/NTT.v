@@ -2,11 +2,13 @@ module NTT # (
     parameter width = 16,
     parameter modulus = 17,
     parameter root = 9,
-    parameter n = 8
+    parameter n = 8,
+    parameter n_inverse = 15
 ) (
     input clk,
     input en_in,
-    input [n-1:0][width-1:0] a,
+    input inverse_,
+    input reg [n-1:0][width-1:0] a,
 
     output reg en_out,
     output reg [n-1:0][width-1:0] t
@@ -24,12 +26,14 @@ localparam [1:0] STATE_WRITEBACK = 2'd3;
 reg [width-1:0] ram_addr_a, ram_addr_b, ram_data_a, ram_data_b, ram_out_a, ram_out_b;
 reg write;
 reg [width-1:0] bra_input, brb_input, bra_output, brb_output;
-reg [width-1:0] but_a, but_b, but_u, but_v;
+reg [width-1:0] ctb_a, ctb_b, ctb_u, ctb_v;
+reg [width-1:0] gsb_a, gsb_b, gsb_u, gsb_v;
 reg [stages-1:0] twiddle_address;
 wire [width-1:0] twiddle_factor;
 
 // registers
 reg [1:0] state;
+reg inverse;
 reg [width-1:0] load_counter;
 reg [width-1:0] stage_counter;
 reg [width-1:0] butterfly_counter;
@@ -40,6 +44,7 @@ initial begin
     load_counter <= 0;
     stage_counter <= 0;
     butterfly_counter <= 0;
+    inverse <= 0;
     en_out = 0;
 end
 
@@ -75,11 +80,22 @@ ctb # (
     .width(width),
     .modulus(modulus)
 ) butterfly (
-    .a(but_a),
-    .b(but_b),
-    .u(but_u),
-    .v(but_v),
+    .a(ctb_a),
+    .b(ctb_b),
+    .u(ctb_u),
+    .v(ctb_v),
     .omega(twiddle_factor)
+);
+
+gsb # (
+    .width(width),
+    .modulus(modulus)
+) inverse_butterfly (
+    .u(gsb_u),
+    .v(gsb_v),
+    .omega(twiddle_factor),
+    .a(gsb_a),
+    .b(gsb_b)
 );
 
 twiddle_rom # (
@@ -126,19 +142,27 @@ always @(*) begin : comb_logic
     ram_data_a = 0;
     ram_data_b = 0;
     write = 0;
-    but_a = ram_out_a;
-    but_b = ram_out_b;
+    ctb_a = ram_out_a;
+    ctb_b = ram_out_b;
+    gsb_u = ram_out_a;
+    gsb_v = ram_out_b;
     twiddle_address = 0;
     rotated_addr_a = 0;
     rotated_addr_b = 0;
 
+    bra_input = load_counter;
+    brb_input = load_counter + 1;
+
     case (state)
         STATE_LOAD: begin
-            bra_input = load_counter;
-            ram_addr_a = bra_output;
-
-            brb_input = load_counter + 1;
-            ram_addr_b = brb_output;
+            
+            if(inverse) begin
+                ram_addr_a = load_counter;
+                ram_addr_b = load_counter + 1;
+            end else begin
+                ram_addr_a = bra_output;
+                ram_addr_b = brb_output;
+            end
 
             ram_data_a = a[load_counter];
             ram_data_b = a[load_counter + 1];
@@ -146,20 +170,14 @@ always @(*) begin : comb_logic
             write = 1;
         end
 
-        STATE_WRITEBACK: begin
-            rotated_addr_a = bit_rotate_index(load_counter, stage_counter + 1);
-            rotated_addr_b = bit_rotate_index(load_counter + 1, stage_counter + 1);
-            ram_addr_a = rotated_addr_a;
-            ram_addr_b = rotated_addr_b;
-            ram_data_a = butterfly_results[load_counter];
-            ram_data_b = butterfly_results[load_counter + 1];
-
-            write = 1;
-        end
-
         STATE_PROCESS: begin
-            distance = 1 << stage_counter;
-            group_size = 1 << (stage_counter+1);
+            if(inverse) begin
+                distance = 1 << (stages - 1 - stage_counter);
+                group_size = 1 << (stages - stage_counter);
+            end else begin
+                distance = 1 << stage_counter;
+                group_size = 1 << (stage_counter+1);
+            end
 
             if (butterfly_counter < butterflies) begin
                 group = (butterfly_counter / distance) * group_size;
@@ -168,14 +186,47 @@ always @(*) begin : comb_logic
                 right_index = group + j + distance;
                 u_index = butterfly_counter * 2;
                 v_index = butterfly_counter * 2 + 1;
-                ram_addr_a = left_index;
-                ram_addr_b = right_index;
+                if (inverse) begin
+                    rotated_addr_a = bit_rotate_index(u_index, stages - stage_counter);
+                    rotated_addr_b = bit_rotate_index(v_index, stages - stage_counter);
+                    ram_addr_a = rotated_addr_a;
+                    ram_addr_b = rotated_addr_b;
+                end else begin
+                    ram_addr_a = left_index;
+                    ram_addr_b = right_index;
+                end
             end
 
             if (butterfly_counter > 0) begin
                 twiddle_j = (butterfly_counter - 1) % distance;
-                twiddle_address = twiddle_j * (n >> (stage_counter + 1));
+                if (inverse) begin
+                    twiddle_address = n - twiddle_j * (n >> (stages - stage_counter));
+                end else begin
+                    twiddle_address = twiddle_j * (n >> (stage_counter + 1));
+                end
             end
+        end
+
+        STATE_WRITEBACK: begin
+            ram_data_a = butterfly_results[load_counter];
+            ram_data_b = butterfly_results[load_counter + 1];
+            if(inverse) begin
+                distance = 1 << (stages - 1 - stage_counter);
+                group_size = 1 << (stages - stage_counter);
+                group = ((load_counter / 2) / distance) * group_size;
+                j = (load_counter / 2) % distance;
+                left_index = group + j;
+                right_index = group + j + distance;
+                ram_addr_a = left_index;
+                ram_addr_b = right_index;
+            end else begin
+                rotated_addr_a = bit_rotate_index(load_counter, stage_counter + 1);
+                rotated_addr_b = bit_rotate_index(load_counter + 1, stage_counter + 1);
+                ram_addr_a = rotated_addr_a;
+                ram_addr_b = rotated_addr_b;
+            end
+
+            write = 1;
         end
 
         default: begin
@@ -190,6 +241,7 @@ always @(posedge clk) begin
 
             if (en_in) begin
                 state <= STATE_LOAD;
+                inverse <= inverse_;
                 load_counter <= 0;
                 stage_counter <= 0;
                 butterfly_counter <= 0;
@@ -207,8 +259,13 @@ always @(posedge clk) begin
 
         STATE_PROCESS: begin
             if (butterfly_counter > 0) begin
-                butterfly_results[(butterfly_counter - 1) * 2] <= but_u;
-                butterfly_results[((butterfly_counter - 1) * 2) + 1] <= but_v;
+                if (inverse) begin
+                    butterfly_results[(butterfly_counter - 1) * 2] <= gsb_a;
+                    butterfly_results[((butterfly_counter - 1) * 2) + 1] <= gsb_b;
+                end else begin
+                    butterfly_results[(butterfly_counter - 1) * 2] <= ctb_u;
+                    butterfly_results[((butterfly_counter - 1) * 2) + 1] <= ctb_v;
+                end 
             end
 
             if (butterfly_counter == butterflies) begin
@@ -222,8 +279,13 @@ always @(posedge clk) begin
 
         STATE_WRITEBACK: begin
             if (stage_counter == stages-1) begin
-                t[rotated_addr_a] <= butterfly_results[load_counter];
-                t[rotated_addr_b] <= butterfly_results[load_counter + 1];
+                if (inverse) begin
+                    t[load_counter] <= (n_inverse * butterfly_results[bra_output]) % modulus;
+                    t[load_counter + 1] <= (n_inverse * butterfly_results[brb_output]) % modulus;
+                end else begin
+                    t[rotated_addr_a] <= butterfly_results[load_counter];
+                    t[rotated_addr_b] <= butterfly_results[load_counter + 1];
+                end
             end
 
             if (load_counter == n-2) begin
