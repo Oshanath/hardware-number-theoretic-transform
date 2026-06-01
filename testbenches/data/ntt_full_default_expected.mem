@@ -1,0 +1,11 @@
+// Sequential NTT full-run default-width expected output coefficients
+// width=16 entries=8 radix=hex
+// Format: <hex value> // [absolute_index] decimal=<decimal value>
+0002 // [0] decimal=2
+0001 // [1] decimal=1
+000c // [2] decimal=12
+0003 // [3] decimal=3
+000d // [4] decimal=13
+0006 // [5] decimal=6
+000e // [6] decimal=14
+0008 // [7] decimal=8

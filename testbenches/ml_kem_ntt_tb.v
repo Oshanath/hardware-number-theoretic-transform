@@ -13,6 +13,10 @@ module ml_kem_ntt_tb;
     localparam integer SMALL_ROOT = 9;
     localparam integer SMALL_N = 8;
     localparam integer SMALL_N_INVERSE = 15;
+    localparam integer KYBER_FORWARD_CASES = 10;
+    localparam integer KYBER_INVERSE_CASES = 5;
+    localparam integer SMALL_FORWARD_CASES = 2;
+    localparam integer SMALL_INVERSE_CASES = 2;
 
     reg clk;
     reg kyber_en_in;
@@ -34,6 +38,14 @@ module ml_kem_ntt_tb;
 
     integer kyber_expected [0:KYBER_N-1];
     integer small_expected [0:SMALL_N-1];
+    reg [KYBER_WIDTH-1:0] kyber_forward_input [0:KYBER_FORWARD_CASES*KYBER_N-1];
+    reg [KYBER_WIDTH-1:0] kyber_forward_expected [0:KYBER_FORWARD_CASES*KYBER_N-1];
+    reg [KYBER_WIDTH-1:0] kyber_inverse_input [0:KYBER_INVERSE_CASES*KYBER_N-1];
+    reg [KYBER_WIDTH-1:0] kyber_inverse_expected [0:KYBER_INVERSE_CASES*KYBER_N-1];
+    reg [SMALL_WIDTH-1:0] small_forward_input [0:SMALL_FORWARD_CASES*SMALL_N-1];
+    reg [SMALL_WIDTH-1:0] small_forward_expected [0:SMALL_FORWARD_CASES*SMALL_N-1];
+    reg [SMALL_WIDTH-1:0] small_inverse_input [0:SMALL_INVERSE_CASES*SMALL_N-1];
+    reg [SMALL_WIDTH-1:0] small_inverse_expected [0:SMALL_INVERSE_CASES*SMALL_N-1];
     integer errors;
 
     NTT #(
@@ -81,6 +93,15 @@ module ml_kem_ntt_tb;
         kyber_t = '0;
         small_t = '0;
         errors = 0;
+
+        $readmemh("testbenches/data/ml_kem_kyber_forward_input.mem", kyber_forward_input);
+        $readmemh("testbenches/data/ml_kem_kyber_forward_expected.mem", kyber_forward_expected);
+        $readmemh("testbenches/data/ml_kem_kyber_inverse_input.mem", kyber_inverse_input);
+        $readmemh("testbenches/data/ml_kem_kyber_inverse_expected.mem", kyber_inverse_expected);
+        $readmemh("testbenches/data/ml_kem_small_forward_input.mem", small_forward_input);
+        $readmemh("testbenches/data/ml_kem_small_forward_expected.mem", small_forward_expected);
+        $readmemh("testbenches/data/ml_kem_small_inverse_input.mem", small_inverse_input);
+        $readmemh("testbenches/data/ml_kem_small_inverse_expected.mem", small_inverse_expected);
 
         #2;
 
@@ -312,11 +333,9 @@ module ml_kem_ntt_tb;
         integer output_count;
         begin
             for (i = 0; i < KYBER_N; i = i + 1) begin
-                next_coeff = kyber_coeff(testcase, i);
-                kyber_a[i] = next_coeff[KYBER_WIDTH-1:0];
+                kyber_a[i] = kyber_forward_input[(testcase - 1) * KYBER_N + i];
+                kyber_expected[i] = kyber_forward_expected[(testcase - 1) * KYBER_N + i];
             end
-
-            calculate_kyber_expected();
 
             kyber_inverse = 1'b0;
             for (i = 0; i < KYBER_N; i = i + 1) begin
@@ -367,11 +386,9 @@ module ml_kem_ntt_tb;
         integer output_count;
         begin
             for (i = 0; i < SMALL_N; i = i + 1) begin
-                next_coeff = small_coeff(testcase, i);
-                small_a[i] = next_coeff[SMALL_WIDTH-1:0];
+                small_a[i] = small_forward_input[(testcase - 1) * SMALL_N + i];
+                small_expected[i] = small_forward_expected[(testcase - 1) * SMALL_N + i];
             end
-
-            calculate_small_expected();
 
             small_inverse = 1'b0;
             for (i = 0; i < SMALL_N; i = i + 1) begin
@@ -430,11 +447,9 @@ module ml_kem_ntt_tb;
         integer output_count;
         begin
             for (i = 0; i < KYBER_N; i = i + 1) begin
-                next_coeff = kyber_coeff(testcase, i);
-                kyber_a[i] = next_coeff[KYBER_WIDTH-1:0];
+                kyber_a[i] = kyber_inverse_input[(testcase - 1) * KYBER_N + i];
+                kyber_expected[i] = kyber_inverse_expected[(testcase - 1) * KYBER_N + i];
             end
-
-            calculate_kyber_inverse_expected();
 
             kyber_inverse = 1'b1;
             for (i = 0; i < KYBER_N; i = i + 1) begin
@@ -487,11 +502,9 @@ module ml_kem_ntt_tb;
         integer output_count;
         begin
             for (i = 0; i < SMALL_N; i = i + 1) begin
-                next_coeff = small_coeff(testcase, i);
-                small_a[i] = next_coeff[SMALL_WIDTH-1:0];
+                small_a[i] = small_inverse_input[(testcase - 1) * SMALL_N + i];
+                small_expected[i] = small_inverse_expected[(testcase - 1) * SMALL_N + i];
             end
-
-            calculate_small_inverse_expected();
 
             small_inverse = 1'b1;
             for (i = 0; i < SMALL_N; i = i + 1) begin

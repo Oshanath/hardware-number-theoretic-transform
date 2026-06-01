@@ -1,0 +1,11 @@
+// Sequential NTT full-run width=20 input coefficients
+// width=20 entries=8 radix=hex
+// Format: <hex value> // [absolute_index] decimal=<decimal value>
+00001 // [0] decimal=1
+00002 // [1] decimal=2
+00003 // [2] decimal=3
+00004 // [3] decimal=4
+00005 // [4] decimal=5
+00006 // [5] decimal=6
+00007 // [6] decimal=7
+00008 // [7] decimal=8

@@ -7,16 +7,19 @@ module NTT_one_stage_tb;
     reg en_in_wide;
 
     reg [15:0] a_default;
-    reg [7:0][15:0] a_default_values;
+    reg [15:0] a_default_values [0:7];
+    reg [15:0] expected_default_values [0:7];
     wire en_out_default;
     wire [15:0] t_default;
 
     reg [19:0] a_wide;
-    reg [7:0][19:0] a_wide_values;
+    reg [19:0] a_wide_values [0:7];
+    reg [19:0] expected_wide_values [0:7];
     wire en_out_wide;
     wire [19:0] t_wide;
 
     integer i;
+    integer errors;
 
     localparam [2:0] STATE_PROCESS = 3'd2;
 
@@ -52,13 +55,23 @@ module NTT_one_stage_tb;
         en_in_wide = 1'b0;
         a_default = '0;
         a_wide = '0;
-        a_default_values = '0;
-        a_wide_values = '0;
+        errors = 0;
+
+        $readmemh("testbenches/data/ntt_one_stage_default_input.mem", a_default_values);
+        $readmemh("testbenches/data/ntt_one_stage_default_expected.mem", expected_default_values);
+        $readmemh("testbenches/data/ntt_one_stage_wide_input.mem", a_wide_values);
+        $readmemh("testbenches/data/ntt_one_stage_wide_expected.mem", expected_wide_values);
 
         #2;
 
         run_default_one_stage;
         run_wide_one_stage;
+
+        if (errors == 0) begin
+            $display("All NTT one stage tests passed.");
+        end else begin
+            $display("NTT one stage tests failed with %0d error(s).", errors);
+        end
 
         $finish;
     end
@@ -75,9 +88,12 @@ module NTT_one_stage_tb;
         begin
             $display("TESTCASE %0s", label_text);
             for (i = 0; i < 8; i = i + 1) begin
-                $display("  state=%0d stage_counter=%0d butterfly_counter=%0d input[%0d]=%0d output butterfly_results[%0d]=%0d",
+                $display("  state=%0d stage_counter=%0d butterfly_counter=%0d input[%0d]=%0d output butterfly_results[%0d]=%0d expected[%0d]=%0d",
                     dut_default.state, dut_default.stage_counter, dut_default.butterfly_counter,
-                    i, a_default_values[i], i, dut_default.butterfly_results[i]);
+                    i, a_default_values[i], i, dut_default.butterfly_results[i], i, expected_default_values[i]);
+                if (dut_default.butterfly_results[i] !== expected_default_values[i]) begin
+                    errors = errors + 1;
+                end
             end
         end
     endtask
@@ -87,9 +103,12 @@ module NTT_one_stage_tb;
         begin
             $display("TESTCASE %0s", label_text);
             for (i = 0; i < 8; i = i + 1) begin
-                $display("  state=%0d stage_counter=%0d butterfly_counter=%0d input[%0d]=%0d output butterfly_results[%0d]=%0d",
+                $display("  state=%0d stage_counter=%0d butterfly_counter=%0d input[%0d]=%0d output butterfly_results[%0d]=%0d expected[%0d]=%0d",
                     dut_wide.state, dut_wide.stage_counter, dut_wide.butterfly_counter,
-                    i, a_wide_values[i], i, dut_wide.butterfly_results[i]);
+                    i, a_wide_values[i], i, dut_wide.butterfly_results[i], i, expected_wide_values[i]);
+                if (dut_wide.butterfly_results[i] !== expected_wide_values[i]) begin
+                    errors = errors + 1;
+                end
             end
         end
     endtask
@@ -98,7 +117,6 @@ module NTT_one_stage_tb;
         begin
             $display("TESTCASE default parameters one stage setup");
             for (i = 0; i < 8; i = i + 1) begin
-                a_default_values[i] = i + 1;
                 $display("  input[%0d]=%0d", i, a_default_values[i]);
             end
 
@@ -123,7 +141,6 @@ module NTT_one_stage_tb;
         begin
             $display("TESTCASE width=20 one stage setup");
             for (i = 0; i < 8; i = i + 1) begin
-                a_wide_values[i] = i + 1;
                 $display("  input[%0d]=%0d", i, a_wide_values[i]);
             end
 

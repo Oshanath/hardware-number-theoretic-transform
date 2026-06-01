@@ -1,0 +1,43 @@
+// Sequential polynomial multiplier N=8 B inputs
+// width=10 entries=32 radix=hex
+// Format: <hex value> // [absolute_index] decimal=<decimal value>
+
+// testcase 1
+000 // [0] decimal=0
+000 // [1] decimal=0
+000 // [2] decimal=0
+000 // [3] decimal=0
+000 // [4] decimal=0
+000 // [5] decimal=0
+000 // [6] decimal=0
+000 // [7] decimal=0
+
+// testcase 2
+003 // [8] decimal=3
+001 // [9] decimal=1
+004 // [10] decimal=4
+001 // [11] decimal=1
+005 // [12] decimal=5
+009 // [13] decimal=9
+002 // [14] decimal=2
+006 // [15] decimal=6
+
+// testcase 3
+008 // [16] decimal=8
+007 // [17] decimal=7
+006 // [18] decimal=6
+005 // [19] decimal=5
+004 // [20] decimal=4
+003 // [21] decimal=3
+002 // [22] decimal=2
+001 // [23] decimal=1
+
+// testcase 4
+001 // [24] decimal=1
+002 // [25] decimal=2
+003 // [26] decimal=3
+004 // [27] decimal=4
+005 // [28] decimal=5
+006 // [29] decimal=6
+007 // [30] decimal=7
+008 // [31] decimal=8

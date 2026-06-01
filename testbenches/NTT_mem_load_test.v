@@ -17,12 +17,14 @@ module NTT_mem_load_test;
     reg en_in16;
 
     reg [WIDTH8-1:0] a8;
-    reg [N8-1:0][WIDTH8-1:0] a8_values;
+    reg [WIDTH8-1:0] a8_values [0:N8-1];
+    reg [WIDTH8-1:0] expected_ram8 [0:N8-1];
     wire en_out8;
     wire [WIDTH8-1:0] t8;
 
     reg [WIDTH16-1:0] a16;
-    reg [N16-1:0][WIDTH16-1:0] a16_values;
+    reg [WIDTH16-1:0] a16_values [0:N16-1];
+    reg [WIDTH16-1:0] expected_ram16 [0:N16-1];
     wire en_out16;
     wire [WIDTH16-1:0] t16;
 
@@ -66,9 +68,12 @@ module NTT_mem_load_test;
         en_in16 = 1'b0;
         a8 = '0;
         a16 = '0;
-        a8_values = '0;
-        a16_values = '0;
         errors = 0;
+
+        $readmemh("testbenches/data/ntt_mem_load_n8_input.mem", a8_values);
+        $readmemh("testbenches/data/ntt_mem_load_n8_expected_ram.mem", expected_ram8);
+        $readmemh("testbenches/data/ntt_mem_load_n16_input.mem", a16_values);
+        $readmemh("testbenches/data/ntt_mem_load_n16_expected_ram.mem", expected_ram16);
 
         #2;
 
@@ -110,7 +115,6 @@ module NTT_mem_load_test;
             $display("TESTCASE %0s", name);
 
             for (i = 0; i < N8; i = i + 1) begin
-                a8_values[i] = (i * 3 + 1) % MODULUS8;
                 $display("  input[%0d]=%0d -> expected ram[%0d]",
                     i, a8_values[i], bit_reverse_index(i, 3));
             end
@@ -124,13 +128,13 @@ module NTT_mem_load_test;
 
             for (i = 0; i < N8; i = i + 1) begin
                 expected_index = bit_reverse_index(i, 3);
-                if (dut8.ram.mem[expected_index] !== a8_values[i]) begin
-                    $display("FAIL %0s output ram[%0d]=%0d expected input[%0d]=%0d",
-                        name, expected_index, dut8.ram.mem[expected_index], i, a8_values[i]);
+                if (dut8.ram.mem[expected_index] !== expected_ram8[expected_index]) begin
+                    $display("FAIL %0s output ram[%0d]=%0d expected ram[%0d]=%0d",
+                        name, expected_index, dut8.ram.mem[expected_index], i, expected_ram8[expected_index]);
                     errors = errors + 1;
                 end else begin
-                    $display("PASS %0s output ram[%0d]=%0d expected input[%0d]=%0d",
-                        name, expected_index, dut8.ram.mem[expected_index], i, a8_values[i]);
+                    $display("PASS %0s output ram[%0d]=%0d expected ram[%0d]=%0d",
+                        name, expected_index, dut8.ram.mem[expected_index], i, expected_ram8[expected_index]);
                 end
             end
         end
@@ -143,7 +147,6 @@ module NTT_mem_load_test;
             $display("TESTCASE %0s", name);
 
             for (i = 0; i < N16; i = i + 1) begin
-                a16_values[i] = (i * 7 + 4) % MODULUS16;
                 $display("  input[%0d]=%0d -> expected ram[%0d]",
                     i, a16_values[i], bit_reverse_index(i, 4));
             end
@@ -157,13 +160,13 @@ module NTT_mem_load_test;
 
             for (i = 0; i < N16; i = i + 1) begin
                 expected_index = bit_reverse_index(i, 4);
-                if (dut16.ram.mem[expected_index] !== a16_values[i]) begin
-                    $display("FAIL %0s output ram[%0d]=%0d expected input[%0d]=%0d",
-                        name, expected_index, dut16.ram.mem[expected_index], i, a16_values[i]);
+                if (dut16.ram.mem[expected_index] !== expected_ram16[expected_index]) begin
+                    $display("FAIL %0s output ram[%0d]=%0d expected ram[%0d]=%0d",
+                        name, expected_index, dut16.ram.mem[expected_index], i, expected_ram16[expected_index]);
                     errors = errors + 1;
                 end else begin
-                    $display("PASS %0s output ram[%0d]=%0d expected input[%0d]=%0d",
-                        name, expected_index, dut16.ram.mem[expected_index], i, a16_values[i]);
+                    $display("PASS %0s output ram[%0d]=%0d expected ram[%0d]=%0d",
+                        name, expected_index, dut16.ram.mem[expected_index], i, expected_ram16[expected_index]);
                 end
             end
         end

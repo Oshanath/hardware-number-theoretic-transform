@@ -7,14 +7,16 @@ module NTT_full_run_tb;
     reg en_in_wide;
 
     reg [15:0] a_default;
-    reg [7:0][15:0] a_default_values;
-    reg [7:0][15:0] t_default_values;
+    reg [15:0] a_default_values [0:7];
+    reg [15:0] t_default_values [0:7];
+    reg [15:0] expected_default_values [0:7];
     wire en_out_default;
     wire [15:0] t_default;
 
     reg [19:0] a_wide;
-    reg [7:0][19:0] a_wide_values;
-    reg [7:0][19:0] t_wide_values;
+    reg [19:0] a_wide_values [0:7];
+    reg [19:0] t_wide_values [0:7];
+    reg [19:0] expected_wide_values [0:7];
     wire en_out_wide;
     wire [19:0] t_wide;
 
@@ -22,6 +24,7 @@ module NTT_full_run_tb;
     integer cycles;
     integer last_stage;
     integer output_count;
+    integer errors;
 
     localparam [2:0] STATE_PROCESS = 3'd2;
 
@@ -57,15 +60,23 @@ module NTT_full_run_tb;
         en_in_wide = 1'b0;
         a_default = '0;
         a_wide = '0;
-        a_default_values = '0;
-        a_wide_values = '0;
-        t_default_values = '0;
-        t_wide_values = '0;
+        errors = 0;
+
+        $readmemh("testbenches/data/ntt_full_default_input.mem", a_default_values);
+        $readmemh("testbenches/data/ntt_full_default_expected.mem", expected_default_values);
+        $readmemh("testbenches/data/ntt_full_wide_input.mem", a_wide_values);
+        $readmemh("testbenches/data/ntt_full_wide_expected.mem", expected_wide_values);
 
         #2;
 
         run_default_full("default parameters full run");
         run_wide_full("width=20 full run");
+
+        if (errors == 0) begin
+            $display("All NTT full run tests passed.");
+        end else begin
+            $display("NTT full run tests failed with %0d error(s).", errors);
+        end
 
         $finish;
     end
@@ -82,7 +93,6 @@ module NTT_full_run_tb;
         begin
             $display("TESTCASE %0s setup", name);
             for (i = 0; i < 8; i = i + 1) begin
-                a_default_values[i] = i + 1;
                 $display("  input[%0d]=%0d", i, a_default_values[i]);
             end
 
@@ -109,6 +119,10 @@ module NTT_full_run_tb;
                     last_stage = dut_default.stage_counter;
                 end
             end
+            if (output_count != 8) begin
+                $display("FAIL %0s output_count=%0d expected=8", name, output_count);
+                errors = errors + 1;
+            end
             print_default_stage(name, last_stage);
 
             $display("TESTCASE %0s output", name);
@@ -116,8 +130,12 @@ module NTT_full_run_tb;
                 cycles, dut_default.state,
                 dut_default.stage_counter, dut_default.butterfly_counter, en_out_default);
             for (i = 0; i < 8; i = i + 1) begin
-                $display("  input[%0d]=%0d output t[%0d]=%0d output butterfly_results[%0d]=%0d",
-                    i, a_default_values[i], i, t_default_values[i], i, dut_default.butterfly_results[i]);
+                $display("  input[%0d]=%0d output t[%0d]=%0d expected[%0d]=%0d output butterfly_results[%0d]=%0d",
+                    i, a_default_values[i], i, t_default_values[i], i, expected_default_values[i],
+                    i, dut_default.butterfly_results[i]);
+                if (t_default_values[i] !== expected_default_values[i]) begin
+                    errors = errors + 1;
+                end
             end
         end
     endtask
@@ -140,7 +158,6 @@ module NTT_full_run_tb;
         begin
             $display("TESTCASE %0s setup", name);
             for (i = 0; i < 8; i = i + 1) begin
-                a_wide_values[i] = i + 1;
                 $display("  input[%0d]=%0d", i, a_wide_values[i]);
             end
 
@@ -167,6 +184,10 @@ module NTT_full_run_tb;
                     last_stage = dut_wide.stage_counter;
                 end
             end
+            if (output_count != 8) begin
+                $display("FAIL %0s output_count=%0d expected=8", name, output_count);
+                errors = errors + 1;
+            end
             print_wide_stage(name, last_stage);
 
             $display("TESTCASE %0s output", name);
@@ -174,8 +195,12 @@ module NTT_full_run_tb;
                 cycles, dut_wide.state,
                 dut_wide.stage_counter, dut_wide.butterfly_counter, en_out_wide);
             for (i = 0; i < 8; i = i + 1) begin
-                $display("  input[%0d]=%0d output t[%0d]=%0d output butterfly_results[%0d]=%0d",
-                    i, a_wide_values[i], i, t_wide_values[i], i, dut_wide.butterfly_results[i]);
+                $display("  input[%0d]=%0d output t[%0d]=%0d expected[%0d]=%0d output butterfly_results[%0d]=%0d",
+                    i, a_wide_values[i], i, t_wide_values[i], i, expected_wide_values[i],
+                    i, dut_wide.butterfly_results[i]);
+                if (t_wide_values[i] !== expected_wide_values[i]) begin
+                    errors = errors + 1;
+                end
             end
         end
     endtask

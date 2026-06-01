@@ -1,0 +1,23 @@
+// ML-KEM-style small sequential NTT forward expected outputs
+// width=10 entries=16 radix=hex
+// Format: <hex value> // [absolute_index] decimal=<decimal value>
+
+// testcase 1
+002 // [0] decimal=2
+001 // [1] decimal=1
+00c // [2] decimal=12
+003 // [3] decimal=3
+00d // [4] decimal=13
+006 // [5] decimal=6
+00e // [6] decimal=14
+008 // [7] decimal=8
+
+// testcase 2
+000 // [8] decimal=0
+000 // [9] decimal=0
+000 // [10] decimal=0
+000 // [11] decimal=0
+008 // [12] decimal=8
+000 // [13] decimal=0
+000 // [14] decimal=0
+000 // [15] decimal=0

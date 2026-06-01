@@ -15,6 +15,8 @@ module polynomial_multiplicator_sequential_tb;
     localparam integer N_INV4 = 13;
 
     localparam integer MAX_CYCLES = 2000;
+    localparam integer N8_CASES = 4;
+    localparam integer N4_CASES = 4;
 
     reg clk;
     reg en_in8;
@@ -32,7 +34,14 @@ module polynomial_multiplicator_sequential_tb;
 
     integer expected8 [N8-1:0];
     integer expected4 [N4-1:0];
+    reg [WIDTH8-1:0] a8_cases [0:N8_CASES*N8-1];
+    reg [WIDTH8-1:0] b8_cases [0:N8_CASES*N8-1];
+    reg [WIDTH8-1:0] expected8_cases [0:N8_CASES*N8-1];
+    reg [WIDTH4-1:0] a4_cases [0:N4_CASES*N4-1];
+    reg [WIDTH4-1:0] b4_cases [0:N4_CASES*N4-1];
+    reg [WIDTH4-1:0] expected4_cases [0:N4_CASES*N4-1];
     integer errors;
+    integer testcase;
 
     polynomial_multiplicator_sequential #(
         .width(WIDTH8),
@@ -79,17 +88,22 @@ module polynomial_multiplicator_sequential_tb;
         b4 = '0;
         errors = 0;
 
+        $readmemh("testbenches/data/poly_seq_n8_a.mem", a8_cases);
+        $readmemh("testbenches/data/poly_seq_n8_b.mem", b8_cases);
+        $readmemh("testbenches/data/poly_seq_n8_expected.mem", expected8_cases);
+        $readmemh("testbenches/data/poly_seq_n4_a.mem", a4_cases);
+        $readmemh("testbenches/data/poly_seq_n4_b.mem", b4_cases);
+        $readmemh("testbenches/data/poly_seq_n4_expected.mem", expected4_cases);
+
         repeat (2) wait_cycle();
 
-        run_poly8(1,  0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0);
-        run_poly8(2,  1, 0, 0, 0, 0, 0, 0, 0,   3, 1, 4, 1, 5, 9, 2, 6);
-        run_poly8(3,  1, 2, 3, 4, 5, 6, 7, 8,   8, 7, 6, 5, 4, 3, 2, 1);
-        run_poly8(4, 16,15,14,13,12,11,10, 9,   1, 2, 3, 4, 5, 6, 7, 8);
+        for (testcase = 1; testcase <= N8_CASES; testcase = testcase + 1) begin
+            run_poly8(testcase);
+        end
 
-        run_poly4(1, 0, 0, 0, 0,   0, 0, 0, 0);
-        run_poly4(2, 1, 0, 0, 0,   3, 1, 4, 1);
-        run_poly4(3, 1, 2, 3, 4,   4, 3, 2, 1);
-        run_poly4(4, 16,15,14,13,  1, 2, 3, 4);
+        for (testcase = 1; testcase <= N4_CASES; testcase = testcase + 1) begin
+            run_poly4(testcase);
+        end
 
         if (errors == 0) begin
             $display("All sequential polynomial multiplicator tests passed.");
@@ -181,42 +195,14 @@ module polynomial_multiplicator_sequential_tb;
 
     task run_poly8;
         input integer testcase;
-        input integer a0;
-        input integer a1;
-        input integer a2;
-        input integer a3;
-        input integer a4_in;
-        input integer a5;
-        input integer a6;
-        input integer a7;
-        input integer b0;
-        input integer b1;
-        input integer b2;
-        input integer b3;
-        input integer b4_in;
-        input integer b5;
-        input integer b6;
-        input integer b7;
         integer timed_out;
+        integer i;
         begin
-            a8[0] = a0[WIDTH8-1:0];
-            a8[1] = a1[WIDTH8-1:0];
-            a8[2] = a2[WIDTH8-1:0];
-            a8[3] = a3[WIDTH8-1:0];
-            a8[4] = a4_in[WIDTH8-1:0];
-            a8[5] = a5[WIDTH8-1:0];
-            a8[6] = a6[WIDTH8-1:0];
-            a8[7] = a7[WIDTH8-1:0];
-            b8[0] = b0[WIDTH8-1:0];
-            b8[1] = b1[WIDTH8-1:0];
-            b8[2] = b2[WIDTH8-1:0];
-            b8[3] = b3[WIDTH8-1:0];
-            b8[4] = b4_in[WIDTH8-1:0];
-            b8[5] = b5[WIDTH8-1:0];
-            b8[6] = b6[WIDTH8-1:0];
-            b8[7] = b7[WIDTH8-1:0];
-
-            calculate_expected8();
+            for (i = 0; i < N8; i = i + 1) begin
+                a8[i] = a8_cases[(testcase - 1) * N8 + i];
+                b8[i] = b8_cases[(testcase - 1) * N8 + i];
+                expected8[i] = expected8_cases[(testcase - 1) * N8 + i];
+            end
 
             $display("TESTCASE seq N=8 testcase=%0d modulus=%0d root=%0d n_inverse=%0d", testcase, MODULUS8, ROOT8, N_INV8);
             $display("  input a=(%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d) b=(%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d)",
@@ -254,26 +240,14 @@ module polynomial_multiplicator_sequential_tb;
 
     task run_poly4;
         input integer testcase;
-        input integer a0;
-        input integer a1;
-        input integer a2;
-        input integer a3;
-        input integer b0;
-        input integer b1;
-        input integer b2;
-        input integer b3;
         integer timed_out;
+        integer i;
         begin
-            a4[0] = a0[WIDTH4-1:0];
-            a4[1] = a1[WIDTH4-1:0];
-            a4[2] = a2[WIDTH4-1:0];
-            a4[3] = a3[WIDTH4-1:0];
-            b4[0] = b0[WIDTH4-1:0];
-            b4[1] = b1[WIDTH4-1:0];
-            b4[2] = b2[WIDTH4-1:0];
-            b4[3] = b3[WIDTH4-1:0];
-
-            calculate_expected4();
+            for (i = 0; i < N4; i = i + 1) begin
+                a4[i] = a4_cases[(testcase - 1) * N4 + i];
+                b4[i] = b4_cases[(testcase - 1) * N4 + i];
+                expected4[i] = expected4_cases[(testcase - 1) * N4 + i];
+            end
 
             $display("TESTCASE seq N=4 testcase=%0d modulus=%0d root=%0d n_inverse=%0d", testcase, MODULUS4, ROOT4, N_INV4);
             $display("  input a=(%0d,%0d,%0d,%0d) b=(%0d,%0d,%0d,%0d)",

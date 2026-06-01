@@ -1,0 +1,11 @@
+// Sequential NTT memory-load N=8 expected RAM after bit-reversed load
+// width=10 entries=8 radix=hex
+// Format: <hex value> // [absolute_index] decimal=<decimal value>
+001 // [0] decimal=1
+00d // [1] decimal=13
+007 // [2] decimal=7
+002 // [3] decimal=2
+004 // [4] decimal=4
+010 // [5] decimal=16
+00a // [6] decimal=10
+005 // [7] decimal=5
