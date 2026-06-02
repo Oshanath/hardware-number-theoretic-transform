@@ -149,7 +149,7 @@ The following diagram is when `n=8`.
 
 ![Combinational NTT diagram](images/combinational_NTT.png)
 
-The [combinational inverse NTT](modules/inverse_NTT_combinational.v) is a separate module.
+The [combinational inverse NTT](modules/inverse_NTT_combinational.v) is a separate module. There is also a [Combinational Polynomial Multiplicator](modules/polynomial_multiplicator.v).
 
 #### [Mixed NTT](modules/mixed/NTT.v)
 
@@ -164,3 +164,5 @@ The mixed NTT is one such design that parallellizes each stage. So when `n=8`, t
 <div align="center">
 <img src="images/mixed_NTT.png" alt="Mixed NTT diagram" width="60%">
 </div>
+
+There is also the [mixed Inverse NTT](modules/mixed/inverse_NTT.v) and the [polynomial multiplicator using the mixed NTT](modules/mixed/polynomial_multiplicator.v).
