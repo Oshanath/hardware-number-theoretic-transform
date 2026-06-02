@@ -2,3 +2,5 @@
 *.vvp
 *.txt
 *.out
+/*.md
+!/README.md
