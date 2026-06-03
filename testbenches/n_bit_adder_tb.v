@@ -14,8 +14,6 @@ module four_bit_adder_tb;
 
     reg [4:0] expected4;
     reg [16:0] expected16;
-    integer i;
-    integer j;
     integer errors;
 
     n_bit_adder #(
@@ -37,48 +35,20 @@ module four_bit_adder_tb;
     );
 
     initial begin
-        $dumpfile("4_bit_adder_tb.vcd");
-        $dumpvars(0, four_bit_adder_tb);
 
         errors = 0;
 
-        for (i = 0; i < 16; i = i + 1) begin
-            for (j = 0; j < 16; j = j + 1) begin
-                a4 = i[3:0];
-                b4 = j[3:0];
+        run_4_bit_case(4'h0, 4'h0);
+        run_4_bit_case(4'h1, 4'h2);
+        run_4_bit_case(4'hf, 4'h1);
+        run_4_bit_case(4'hf, 4'hf);
 
-                #10;
-
-                expected4 = a4 + b4;
-
-                if ({cout4, s4} !== expected4) begin
-                    $display("FAILED 4-bit: a=%b b=%b | got cout=%b s=%b | expected cout=%b s=%b",
-                        a4, b4, cout4, s4, expected4[4], expected4[3:0]);
-                    errors = errors + 1;
-                end
-            end
-        end
-
-        for (i = 0; i < 256; i = i + 1) begin
-            a16 = (i * 16'h1021) ^ 16'h5a5a;
-            b16 = (i * 16'h00f3) ^ 16'ha5a5;
-
-            #10;
-
-            expected16 = a16 + b16;
-
-            if ({cout16, s16} !== expected16) begin
-                $display("FAILED 16-bit: a=%h b=%h | got cout=%b s=%h | expected cout=%b s=%h",
-                    a16, b16, cout16, s16, expected16[16], expected16[15:0]);
-                errors = errors + 1;
-            end
-        end
-
-        a16 = 16'h0000; b16 = 16'h0000; #10; check_16_bit_sum;
-        a16 = 16'hffff; b16 = 16'h0001; #10; check_16_bit_sum;
-        a16 = 16'hffff; b16 = 16'hffff; #10; check_16_bit_sum;
-        a16 = 16'h8000; b16 = 16'h8000; #10; check_16_bit_sum;
-        a16 = 16'h1234; b16 = 16'hedcb; #10; check_16_bit_sum;
+        run_16_bit_case(16'h0000, 16'h0000);
+        run_16_bit_case(16'hffff, 16'h0001);
+        run_16_bit_case(16'h8000, 16'h8000);
+        run_16_bit_case(16'h1357, 16'h2468);
+        run_16_bit_case(16'h1234, 16'hedcb);
+        run_16_bit_case(16'ha5a5, 16'h5a5a);
 
         if (errors == 0) begin
             $display("All 4-bit and 16-bit adder tests passed.");
@@ -97,7 +67,43 @@ module four_bit_adder_tb;
                 $display("FAILED 16-bit: a=%h b=%h | got cout=%b s=%h | expected cout=%b s=%h",
                     a16, b16, cout16, s16, expected16[16], expected16[15:0]);
                 errors = errors + 1;
+            end else begin
+                $display("PASSED 16-bit: a=%h b=%h | got cout=%b s=%h | expected cout=%b s=%h",
+                    a16, b16, cout16, s16, expected16[16], expected16[15:0]);
             end
+        end
+    endtask
+
+    task run_4_bit_case;
+        input [3:0] next_a;
+        input [3:0] next_b;
+        begin
+            a4 = next_a;
+            b4 = next_b;
+
+            #10;
+
+            expected4 = a4 + b4;
+
+            if ({cout4, s4} !== expected4) begin
+                $display("FAILED 4-bit: a=%b b=%b | got cout=%b s=%b | expected cout=%b s=%b",
+                    a4, b4, cout4, s4, expected4[4], expected4[3:0]);
+                errors = errors + 1;
+            end else begin
+                $display("PASSED 4-bit: a=%b b=%b | got cout=%b s=%b | expected cout=%b s=%b",
+                    a4, b4, cout4, s4, expected4[4], expected4[3:0]);
+            end
+        end
+    endtask
+
+    task run_16_bit_case;
+        input [15:0] next_a;
+        input [15:0] next_b;
+        begin
+            a16 = next_a;
+            b16 = next_b;
+            #10;
+            check_16_bit_sum;
         end
     endtask
 

@@ -10,7 +10,7 @@ module full_adder_tb;
     wire cout;
 
     reg [1:0] expected;
-    integer i;
+    integer errors;
 
     full_adder dut (
         .a(a),
@@ -21,11 +21,37 @@ module full_adder_tb;
     );
 
     initial begin
-        $dumpfile("full_adder_tb.vcd");
-        $dumpvars(0, full_adder_tb);
 
-        for (i = 0; i < 8; i = i + 1) begin
-            {a, b, cin} = i[2:0];
+        errors = 0;
+
+        run_case(1'b0, 1'b0, 1'b0);
+        run_case(1'b0, 1'b0, 1'b1);
+        run_case(1'b0, 1'b1, 1'b0);
+        run_case(1'b0, 1'b1, 1'b1);
+        run_case(1'b1, 1'b0, 1'b0);
+        run_case(1'b1, 1'b0, 1'b1);
+        run_case(1'b1, 1'b1, 1'b0);
+        run_case(1'b1, 1'b1, 1'b1);
+        run_case(1'b0, 1'b1, 1'b1);
+        run_case(1'b1, 1'b1, 1'b1);
+
+        if (errors == 0) begin
+            $display("All full adder tests passed.");
+        end else begin
+            $display("Full adder tests failed with %0d error(s).", errors);
+        end
+
+        $finish;
+    end
+
+    task run_case;
+        input next_a;
+        input next_b;
+        input next_cin;
+        begin
+            a = next_a;
+            b = next_b;
+            cin = next_cin;
 
             #10;
 
@@ -33,14 +59,11 @@ module full_adder_tb;
 
             if ({cout, s} !== expected) begin
                 $display("FAILED: a=%b b=%b cin=%b | got cout=%b s=%b | expected cout=%b s=%b", a, b, cin, cout, s, expected[1], expected[0]);
+                errors = errors + 1;
             end else begin
                 $display("PASSED: a=%b b=%b cin=%b | cout=%b s=%b", a, b, cin, cout, s);
             end
-
         end
-
-        $display("Test finished.");
-        $finish;
-    end
+    endtask
 
 endmodule

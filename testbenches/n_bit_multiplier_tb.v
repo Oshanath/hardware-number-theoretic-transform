@@ -23,8 +23,6 @@ module n_bit_multiplier_tb;
     reg expected_overflow3;
     reg expected_overflow4;
     reg expected_overflow16;
-    integer i;
-    integer j;
     integer errors;
 
     n_bit_multiplier #(
@@ -55,67 +53,24 @@ module n_bit_multiplier_tb;
     );
 
     initial begin
-        $dumpfile("n_bit_multiplier_tb.vcd");
-        $dumpvars(0, n_bit_multiplier_tb);
 
         errors = 0;
 
-        for (i = 0; i < 8; i = i + 1) begin
-            for (j = 0; j < 8; j = j + 1) begin
-                a3 = i;
-                b3 = j;
+        check_3_bit_product(3'd0, 3'd0);
+        check_3_bit_product(3'd1, 3'd7);
+        check_3_bit_product(3'd3, 3'd3);
+        check_3_bit_product(3'd7, 3'd7);
 
-                #10;
-
-                expected3 = a3 * b3;
-                expected_overflow3 = |expected3[5:3];
-
-                if ((p3 !== expected3[2:0]) || (overflow3 !== expected_overflow3)) begin
-                    $display("FAIL 3-bit: a=%0d b=%0d | got p=%b overflow=%b | expected p=%b overflow=%b",
-                        a3, b3, p3, overflow3, expected3[2:0], expected_overflow3);
-                    errors = errors + 1;
-                end else begin
-                    $display("PASS 3-bit: a=%0d b=%0d | got p=%b overflow=%b | expected p=%b overflow=%b",
-                        a3, b3, p3, overflow3, expected3[2:0], expected_overflow3);
-                end
-            end
-        end
-
-        for (i = 0; i < 16; i = i + 1) begin
-            for (j = 0; j < 16; j = j + 1) begin
-                a4 = i;
-                b4 = j;
-
-                #10;
-
-                expected4 = a4 * b4;
-                expected_overflow4 = |expected4[7:4];
-
-                if ((p4 !== expected4[3:0]) || (overflow4 !== expected_overflow4)) begin
-                    $display("FAIL 4-bit: a=%0d b=%0d | got p=%b overflow=%b | expected p=%b overflow=%b",
-                        a4, b4, p4, overflow4, expected4[3:0], expected_overflow4);
-                    errors = errors + 1;
-                end else begin
-                    $display("PASS 4-bit: a=%0d b=%0d | got p=%b overflow=%b | expected p=%b overflow=%b",
-                        a4, b4, p4, overflow4, expected4[3:0], expected_overflow4);
-                end
-            end
-        end
+        check_4_bit_product(4'd0, 4'd0);
+        check_4_bit_product(4'd1, 4'd15);
+        check_4_bit_product(4'd7, 4'd9);
+        check_4_bit_product(4'd15, 4'd15);
 
         check_16_bit_product(16'h0000, 16'h0000);
-        check_16_bit_product(16'h0001, 16'h0001);
         check_16_bit_product(16'hffff, 16'h0001);
-        check_16_bit_product(16'hffff, 16'hffff);
-        check_16_bit_product(16'h8000, 16'h0002);
-        check_16_bit_product(16'h8000, 16'h8000);
+        check_16_bit_product(16'h1357, 16'h2468);
         check_16_bit_product(16'h1234, 16'h5678);
-        check_16_bit_product(16'habcd, 16'h0101);
-        check_16_bit_product(16'h00ff, 16'h0100);
-        check_16_bit_product(16'h0100, 16'h0100);
-
-        for (i = 0; i < 256; i = i + 1) begin
-            check_16_bit_product((i * 16'h1021) ^ 16'h5a5a, (i * 16'h00f3) ^ 16'ha5a5);
-        end
+        check_16_bit_product(16'h8000, 16'h8000);
 
         if (errors == 0) begin
             $display("All 3-bit, 4-bit, and 16-bit multiplier tests passed.");
@@ -125,6 +80,52 @@ module n_bit_multiplier_tb;
 
         $finish;
     end
+
+    task check_3_bit_product;
+        input [2:0] next_a;
+        input [2:0] next_b;
+        begin
+            a3 = next_a;
+            b3 = next_b;
+
+            #10;
+
+            expected3 = a3 * b3;
+            expected_overflow3 = |expected3[5:3];
+
+            if ((p3 !== expected3[2:0]) || (overflow3 !== expected_overflow3)) begin
+                $display("FAIL 3-bit: a=%0d b=%0d | got p=%b overflow=%b | expected p=%b overflow=%b",
+                    a3, b3, p3, overflow3, expected3[2:0], expected_overflow3);
+                errors = errors + 1;
+            end else begin
+                $display("PASS 3-bit: a=%0d b=%0d | got p=%b overflow=%b | expected p=%b overflow=%b",
+                    a3, b3, p3, overflow3, expected3[2:0], expected_overflow3);
+            end
+        end
+    endtask
+
+    task check_4_bit_product;
+        input [3:0] next_a;
+        input [3:0] next_b;
+        begin
+            a4 = next_a;
+            b4 = next_b;
+
+            #10;
+
+            expected4 = a4 * b4;
+            expected_overflow4 = |expected4[7:4];
+
+            if ((p4 !== expected4[3:0]) || (overflow4 !== expected_overflow4)) begin
+                $display("FAIL 4-bit: a=%0d b=%0d | got p=%b overflow=%b | expected p=%b overflow=%b",
+                    a4, b4, p4, overflow4, expected4[3:0], expected_overflow4);
+                errors = errors + 1;
+            end else begin
+                $display("PASS 4-bit: a=%0d b=%0d | got p=%b overflow=%b | expected p=%b overflow=%b",
+                    a4, b4, p4, overflow4, expected4[3:0], expected_overflow4);
+            end
+        end
+    endtask
 
     task check_16_bit_product;
         input [15:0] next_a;

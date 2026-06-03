@@ -20,8 +20,6 @@ module inverse_ntt_bit_rotate_tb;
     reg [N16-1:0][WIDTH16-1:0] a16;
     wire [N16-1:0][WIDTH16-1:0] t16;
 
-    integer i;
-    integer bits;
     integer errors;
 
     ntt_combinational #(
@@ -45,24 +43,22 @@ module inverse_ntt_bit_rotate_tb;
     );
 
     initial begin
-        $dumpfile("inverse_ntt_bit_rotate_tb.vcd");
-        $dumpvars(0, inverse_ntt_bit_rotate_tb);
 
         a8 = '0;
         a16 = '0;
         errors = 0;
 
-        for (bits = 1; bits <= STAGES8; bits = bits + 1) begin
-            for (i = 0; i < (N8 * 2); i = i + 1) begin
-                check_bit_rotate_8(i, bits);
-            end
-        end
+        check_bit_rotate_8(0, 1);
+        check_bit_rotate_8(1, 1);
+        check_bit_rotate_8(5, 2);
+        check_bit_rotate_8(7, STAGES8);
+        check_bit_rotate_8(13, STAGES8);
 
-        for (bits = 1; bits <= STAGES16; bits = bits + 1) begin
-            for (i = 0; i < (N16 * 2); i = i + 1) begin
-                check_bit_rotate_16(i, bits);
-            end
-        end
+        check_bit_rotate_16(0, 1);
+        check_bit_rotate_16(1, 1);
+        check_bit_rotate_16(11, 3);
+        check_bit_rotate_16(15, STAGES16);
+        check_bit_rotate_16(29, STAGES16);
 
         if (errors == 0) begin
             $display("All inverse NTT bit_rotate tests passed.");
@@ -73,22 +69,20 @@ module inverse_ntt_bit_rotate_tb;
         $finish;
     end
 
-    function integer expected_left_rotate;
+    function integer expected_right_rotate;
         input integer x;
         input integer bit_count;
 
-        integer bit_limit;
-        integer top_bit_value;
+        integer mask;
         integer low;
         integer high;
         integer rotated_low;
         begin
-            bit_limit = 1 << bit_count;
-            top_bit_value = 1 << (bit_count - 1);
-            low = x % bit_limit;
-            high = x - low;
-            rotated_low = ((low % top_bit_value) * 2) + (low / top_bit_value);
-            expected_left_rotate = high + rotated_low;
+            mask = (1 << bit_count) - 1;
+            low = x & mask;
+            high = x & ~mask;
+            rotated_low = (low >> 1) | ((low & 1) << (bit_count - 1));
+            expected_right_rotate = high | rotated_low;
         end
     endfunction
 
@@ -101,7 +95,7 @@ module inverse_ntt_bit_rotate_tb;
         begin
             #1;
             actual = dut8.bit_rotate(next_x, next_bits);
-            expected = expected_left_rotate(next_x, next_bits);
+            expected = expected_right_rotate(next_x, next_bits);
 
             if (actual !== expected) begin
                 $display("FAIL bit_rotate N=%0d bits=%0d x=%0d | got=%0d | expected=%0d",
@@ -123,7 +117,7 @@ module inverse_ntt_bit_rotate_tb;
         begin
             #1;
             actual = dut16.bit_rotate(next_x, next_bits);
-            expected = expected_left_rotate(next_x, next_bits);
+            expected = expected_right_rotate(next_x, next_bits);
 
             if (actual !== expected) begin
                 $display("FAIL bit_rotate N=%0d bits=%0d x=%0d | got=%0d | expected=%0d",

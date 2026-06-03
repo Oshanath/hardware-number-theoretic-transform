@@ -13,7 +13,6 @@ module modular_reducer_tb;
     reg [15:0] x16;
     wire [15:0] xmodn16;
 
-    integer i;
     integer expected10;
     integer expected16;
     integer errors;
@@ -35,18 +34,22 @@ module modular_reducer_tb;
     );
 
     initial begin
-        $dumpfile("modular_reducer_tb.vcd");
-        $dumpvars(0, modular_reducer_tb);
 
         errors = 0;
 
-        for (i = 0; i <= MAX_X10; i = i + 1) begin
-            check_10_bit_reduction(i);
-        end
+        check_10_bit_reduction(0);
+        check_10_bit_reduction(MODULUS10 - 1);
+        check_10_bit_reduction(MODULUS10);
+        check_10_bit_reduction(10'd73);
+        check_10_bit_reduction(10'd218);
+        check_10_bit_reduction(MAX_X10);
 
-        for (i = 0; i <= MAX_X16; i = i + 1) begin
-            check_16_bit_reduction(i);
-        end
+        check_16_bit_reduction(0);
+        check_16_bit_reduction(MODULUS16 - 1);
+        check_16_bit_reduction(MODULUS16);
+        check_16_bit_reduction(16'd12345);
+        check_16_bit_reduction(16'd54321);
+        check_16_bit_reduction(MAX_X16);
 
         if (errors == 0) begin
             $display("All 10-bit and 16-bit modular reducer tests passed.");

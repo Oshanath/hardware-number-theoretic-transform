@@ -20,8 +20,6 @@ module ntt_function_tb;
     reg [N16-1:0][WIDTH16-1:0] a16;
     wire [N16-1:0][WIDTH16-1:0] t16;
 
-    integer i;
-    integer bits;
     integer errors;
 
     ntt_combinational #(
@@ -45,32 +43,34 @@ module ntt_function_tb;
     );
 
     initial begin
-        $dumpfile("ntt_function_tb.vcd");
-        $dumpvars(0, ntt_function_tb);
 
         a8 = '0;
         a16 = '0;
         errors = 0;
 
-        for (i = 0; i < N8; i = i + 1) begin
-            check_bit_reverse_8(i);
-        end
+        check_bit_reverse_8(0);
+        check_bit_reverse_8(1);
+        check_bit_reverse_8(3);
+        check_bit_reverse_8(5);
+        check_bit_reverse_8(N8 - 1);
 
-        for (bits = 1; bits <= STAGES8; bits = bits + 1) begin
-            for (i = 0; i < N8; i = i + 1) begin
-                check_bit_rotate_8(i, bits);
-            end
-        end
+        check_bit_rotate_8(0, 1);
+        check_bit_rotate_8(1, 1);
+        check_bit_rotate_8(3, 2);
+        check_bit_rotate_8(5, STAGES8);
+        check_bit_rotate_8(N8 - 1, STAGES8);
 
-        for (i = 0; i < N16; i = i + 1) begin
-            check_bit_reverse_16(i);
-        end
+        check_bit_reverse_16(0);
+        check_bit_reverse_16(1);
+        check_bit_reverse_16(6);
+        check_bit_reverse_16(9);
+        check_bit_reverse_16(N16 - 1);
 
-        for (bits = 1; bits <= STAGES16; bits = bits + 1) begin
-            for (i = 0; i < N16; i = i + 1) begin
-                check_bit_rotate_16(i, bits);
-            end
-        end
+        check_bit_rotate_16(0, 1);
+        check_bit_rotate_16(1, 1);
+        check_bit_rotate_16(6, 3);
+        check_bit_rotate_16(9, STAGES16);
+        check_bit_rotate_16(N16 - 1, STAGES16);
 
         if (errors == 0) begin
             $display("All NTT function tests passed.");

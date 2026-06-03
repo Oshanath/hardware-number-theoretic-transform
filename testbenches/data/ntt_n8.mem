@@ -1,0 +1,407 @@
+// Common NTT test data for n8
+// n=8 modulus=17 root=9 n_inverse=15 width=16
+// cases=20; testcases 1-15 are forward NTT
+// testcases 16-20 are inverse NTT
+// Each testcase stores input vector followed by expected output vector.
+// Hex values are for $readmemh; decimal comments are for humans.
+
+// testcase 1: edge_all_zero, forward
+// input decimal = [0, 0, 0, 0, 0, 0, 0, 0]
+0000 // input[0] = 0
+0000 // input[1] = 0
+0000 // input[2] = 0
+0000 // input[3] = 0
+0000 // input[4] = 0
+0000 // input[5] = 0
+0000 // input[6] = 0
+0000 // input[7] = 0
+// expected decimal = [0, 0, 0, 0, 0, 0, 0, 0]
+0000 // expected[0] = 0
+0000 // expected[1] = 0
+0000 // expected[2] = 0
+0000 // expected[3] = 0
+0000 // expected[4] = 0
+0000 // expected[5] = 0
+0000 // expected[6] = 0
+0000 // expected[7] = 0
+
+// testcase 2: edge_unit_impulse, forward
+// input decimal = [1, 0, 0, 0, 0, 0, 0, 0]
+0001 // input[0] = 1
+0000 // input[1] = 0
+0000 // input[2] = 0
+0000 // input[3] = 0
+0000 // input[4] = 0
+0000 // input[5] = 0
+0000 // input[6] = 0
+0000 // input[7] = 0
+// expected decimal = [1, 1, 1, 1, 1, 1, 1, 1]
+0001 // expected[0] = 1
+0001 // expected[1] = 1
+0001 // expected[2] = 1
+0001 // expected[3] = 1
+0001 // expected[4] = 1
+0001 // expected[5] = 1
+0001 // expected[6] = 1
+0001 // expected[7] = 1
+
+// testcase 3: edge_all_modulus_minus_one, forward
+// input decimal = [16, 16, 16, 16, 16, 16, 16, 16]
+0010 // input[0] = 16
+0010 // input[1] = 16
+0010 // input[2] = 16
+0010 // input[3] = 16
+0010 // input[4] = 16
+0010 // input[5] = 16
+0010 // input[6] = 16
+0010 // input[7] = 16
+// expected decimal = [9, 0, 0, 0, 0, 0, 0, 0]
+0009 // expected[0] = 9
+0000 // expected[1] = 0
+0000 // expected[2] = 0
+0000 // expected[3] = 0
+0000 // expected[4] = 0
+0000 // expected[5] = 0
+0000 // expected[6] = 0
+0000 // expected[7] = 0
+
+// testcase 4: random_forward_4, forward
+// input decimal = [1, 14, 1, 5, 6, 4, 7, 6]
+0001 // input[0] = 1
+000e // input[1] = 14
+0001 // input[2] = 1
+0005 // input[3] = 5
+0006 // input[4] = 6
+0004 // input[5] = 4
+0007 // input[6] = 7
+0006 // input[7] = 6
+// expected decimal = [10, 9, 5, 10, 3, 12, 10, 0]
+000a // expected[0] = 10
+0009 // expected[1] = 9
+0005 // expected[2] = 5
+000a // expected[3] = 10
+0003 // expected[4] = 3
+000c // expected[5] = 12
+000a // expected[6] = 10
+0000 // expected[7] = 0
+
+// testcase 5: random_forward_5, forward
+// input decimal = [16, 9, 13, 2, 7, 1, 6, 3]
+0010 // input[0] = 16
+0009 // input[1] = 9
+000d // input[2] = 13
+0002 // input[3] = 2
+0007 // input[4] = 7
+0001 // input[5] = 1
+0006 // input[6] = 6
+0003 // input[7] = 3
+// expected decimal = [6, 4, 1, 12, 10, 9, 7, 11]
+0006 // expected[0] = 6
+0004 // expected[1] = 4
+0001 // expected[2] = 1
+000c // expected[3] = 12
+000a // expected[4] = 10
+0009 // expected[5] = 9
+0007 // expected[6] = 7
+000b // expected[7] = 11
+
+// testcase 6: random_forward_6, forward
+// input decimal = [6, 2, 7, 1, 3, 4, 16, 6]
+0006 // input[0] = 6
+0002 // input[1] = 2
+0007 // input[2] = 7
+0001 // input[3] = 1
+0003 // input[4] = 3
+0004 // input[5] = 4
+0010 // input[6] = 16
+0006 // input[7] = 6
+// expected decimal = [11, 14, 7, 11, 2, 13, 16, 8]
+000b // expected[0] = 11
+000e // expected[1] = 14
+0007 // expected[2] = 7
+000b // expected[3] = 11
+0002 // expected[4] = 2
+000d // expected[5] = 13
+0010 // expected[6] = 16
+0008 // expected[7] = 8
+
+// testcase 7: random_forward_7, forward
+// input decimal = [12, 3, 15, 15, 10, 10, 2, 15]
+000c // input[0] = 12
+0003 // input[1] = 3
+000f // input[2] = 15
+000f // input[3] = 15
+000a // input[4] = 10
+000a // input[5] = 10
+0002 // input[6] = 2
+000f // input[7] = 15
+// expected decimal = [14, 6, 5, 0, 13, 13, 5, 6]
+000e // expected[0] = 14
+0006 // expected[1] = 6
+0005 // expected[2] = 5
+0000 // expected[3] = 0
+000d // expected[4] = 13
+000d // expected[5] = 13
+0005 // expected[6] = 5
+0006 // expected[7] = 6
+
+// testcase 8: random_forward_8, forward
+// input decimal = [11, 5, 3, 0, 0, 3, 5, 11]
+000b // input[0] = 11
+0005 // input[1] = 5
+0003 // input[2] = 3
+0000 // input[3] = 0
+0000 // input[4] = 0
+0003 // input[5] = 3
+0005 // input[6] = 5
+000b // input[7] = 11
+// expected decimal = [4, 8, 15, 2, 0, 13, 8, 4]
+0004 // expected[0] = 4
+0008 // expected[1] = 8
+000f // expected[2] = 15
+0002 // expected[3] = 2
+0000 // expected[4] = 0
+000d // expected[5] = 13
+0008 // expected[6] = 8
+0004 // expected[7] = 4
+
+// testcase 9: random_forward_9, forward
+// input decimal = [7, 15, 0, 2, 4, 12, 1, 3]
+0007 // input[0] = 7
+000f // input[1] = 15
+0000 // input[2] = 0
+0002 // input[3] = 2
+0004 // input[4] = 4
+000c // input[5] = 12
+0001 // input[6] = 1
+0003 // input[7] = 3
+// expected decimal = [10, 2, 7, 1, 14, 12, 13, 14]
+000a // expected[0] = 10
+0002 // expected[1] = 2
+0007 // expected[2] = 7
+0001 // expected[3] = 1
+000e // expected[4] = 14
+000c // expected[5] = 12
+000d // expected[6] = 13
+000e // expected[7] = 14
+
+// testcase 10: random_forward_10, forward
+// input decimal = [5, 12, 0, 2, 5, 0, 13, 5]
+0005 // input[0] = 5
+000c // input[1] = 12
+0000 // input[2] = 0
+0002 // input[3] = 2
+0005 // input[4] = 5
+0000 // input[5] = 0
+000d // input[6] = 13
+0005 // input[7] = 5
+// expected decimal = [8, 13, 11, 16, 4, 6, 0, 16]
+0008 // expected[0] = 8
+000d // expected[1] = 13
+000b // expected[2] = 11
+0010 // expected[3] = 16
+0004 // expected[4] = 4
+0006 // expected[5] = 6
+0000 // expected[6] = 0
+0010 // expected[7] = 16
+
+// testcase 11: random_forward_11, forward
+// input decimal = [2, 7, 8, 10, 6, 7, 6, 8]
+0002 // input[0] = 2
+0007 // input[1] = 7
+0008 // input[2] = 8
+000a // input[3] = 10
+0006 // input[4] = 6
+0007 // input[5] = 7
+0006 // input[6] = 6
+0008 // input[7] = 8
+// expected decimal = [3, 1, 10, 5, 7, 9, 12, 3]
+0003 // expected[0] = 3
+0001 // expected[1] = 1
+000a // expected[2] = 10
+0005 // expected[3] = 5
+0007 // expected[4] = 7
+0009 // expected[5] = 9
+000c // expected[6] = 12
+0003 // expected[7] = 3
+
+// testcase 12: random_forward_12, forward
+// input decimal = [8, 8, 0, 7, 8, 3, 13, 0]
+0008 // input[0] = 8
+0008 // input[1] = 8
+0000 // input[2] = 0
+0007 // input[3] = 7
+0008 // input[4] = 8
+0003 // input[5] = 3
+000d // input[6] = 13
+0000 // input[7] = 0
+// expected decimal = [13, 15, 4, 1, 11, 4, 2, 14]
+000d // expected[0] = 13
+000f // expected[1] = 15
+0004 // expected[2] = 4
+0001 // expected[3] = 1
+000b // expected[4] = 11
+0004 // expected[5] = 4
+0002 // expected[6] = 2
+000e // expected[7] = 14
+
+// testcase 13: random_forward_13, forward
+// input decimal = [1, 10, 10, 4, 14, 14, 5, 4]
+0001 // input[0] = 1
+000a // input[1] = 10
+000a // input[2] = 10
+0004 // input[3] = 4
+000e // input[4] = 14
+000e // input[5] = 14
+0005 // input[6] = 5
+0004 // input[7] = 4
+// expected decimal = [11, 16, 4, 15, 15, 3, 13, 16]
+000b // expected[0] = 11
+0010 // expected[1] = 16
+0004 // expected[2] = 4
+000f // expected[3] = 15
+000f // expected[4] = 15
+0003 // expected[5] = 3
+000d // expected[6] = 13
+0010 // expected[7] = 16
+
+// testcase 14: random_forward_14, forward
+// input decimal = [1, 3, 2, 10, 2, 14, 7, 8]
+0001 // input[0] = 1
+0003 // input[1] = 3
+0002 // input[2] = 2
+000a // input[3] = 10
+0002 // input[4] = 2
+000e // input[5] = 14
+0007 // input[6] = 7
+0008 // input[7] = 8
+// expected decimal = [13, 1, 15, 2, 11, 3, 7, 7]
+000d // expected[0] = 13
+0001 // expected[1] = 1
+000f // expected[2] = 15
+0002 // expected[3] = 2
+000b // expected[4] = 11
+0003 // expected[5] = 3
+0007 // expected[6] = 7
+0007 // expected[7] = 7
+
+// testcase 15: random_forward_15, forward
+// input decimal = [4, 14, 0, 4, 0, 16, 11, 7]
+0004 // input[0] = 4
+000e // input[1] = 14
+0000 // input[2] = 0
+0004 // input[3] = 4
+0000 // input[4] = 0
+0010 // input[5] = 16
+000b // input[6] = 11
+0007 // input[7] = 7
+// expected decimal = [5, 2, 2, 5, 8, 9, 1, 0]
+0005 // expected[0] = 5
+0002 // expected[1] = 2
+0002 // expected[2] = 2
+0005 // expected[3] = 5
+0008 // expected[4] = 8
+0009 // expected[5] = 9
+0001 // expected[6] = 1
+0000 // expected[7] = 0
+
+// testcase 16: edge_inverse_all_zero, inverse
+// input decimal = [0, 0, 0, 0, 0, 0, 0, 0]
+0000 // input[0] = 0
+0000 // input[1] = 0
+0000 // input[2] = 0
+0000 // input[3] = 0
+0000 // input[4] = 0
+0000 // input[5] = 0
+0000 // input[6] = 0
+0000 // input[7] = 0
+// expected decimal = [0, 0, 0, 0, 0, 0, 0, 0]
+0000 // expected[0] = 0
+0000 // expected[1] = 0
+0000 // expected[2] = 0
+0000 // expected[3] = 0
+0000 // expected[4] = 0
+0000 // expected[5] = 0
+0000 // expected[6] = 0
+0000 // expected[7] = 0
+
+// testcase 17: random_inverse_1, inverse
+// input decimal = [15, 8, 6, 9, 10, 15, 13, 10]
+000f // input[0] = 15
+0008 // input[1] = 8
+0006 // input[2] = 6
+0009 // input[3] = 9
+000a // input[4] = 10
+000f // input[5] = 15
+000d // input[6] = 13
+000a // input[7] = 10
+// expected decimal = [15, 5, 7, 16, 13, 2, 3, 5]
+000f // expected[0] = 15
+0005 // expected[1] = 5
+0007 // expected[2] = 7
+0010 // expected[3] = 16
+000d // expected[4] = 13
+0002 // expected[5] = 2
+0003 // expected[6] = 3
+0005 // expected[7] = 5
+
+// testcase 18: random_inverse_2, inverse
+// input decimal = [4, 11, 16, 4, 12, 4, 0, 2]
+0004 // input[0] = 4
+000b // input[1] = 11
+0010 // input[2] = 16
+0004 // input[3] = 4
+000c // input[4] = 12
+0004 // input[5] = 4
+0000 // input[6] = 0
+0002 // input[7] = 2
+// expected decimal = [13, 15, 13, 7, 12, 16, 4, 9]
+000d // expected[0] = 13
+000f // expected[1] = 15
+000d // expected[2] = 13
+0007 // expected[3] = 7
+000c // expected[4] = 12
+0010 // expected[5] = 16
+0004 // expected[6] = 4
+0009 // expected[7] = 9
+
+// testcase 19: random_inverse_3, inverse
+// input decimal = [4, 1, 3, 3, 9, 11, 7, 4]
+0004 // input[0] = 4
+0001 // input[1] = 1
+0003 // input[2] = 3
+0003 // input[3] = 3
+0009 // input[4] = 9
+000b // input[5] = 11
+0007 // input[6] = 7
+0004 // input[7] = 4
+// expected decimal = [1, 13, 5, 6, 9, 3, 0, 1]
+0001 // expected[0] = 1
+000d // expected[1] = 13
+0005 // expected[2] = 5
+0006 // expected[3] = 6
+0009 // expected[4] = 9
+0003 // expected[5] = 3
+0000 // expected[6] = 0
+0001 // expected[7] = 1
+
+// testcase 20: random_inverse_4, inverse
+// input decimal = [0, 3, 0, 4, 14, 3, 10, 1]
+0000 // input[0] = 0
+0003 // input[1] = 3
+0000 // input[2] = 0
+0004 // input[3] = 4
+000e // input[4] = 14
+0003 // input[5] = 3
+000a // input[6] = 10
+0001 // input[7] = 1
+// expected decimal = [15, 9, 1, 4, 8, 3, 0, 11]
+000f // expected[0] = 15
+0009 // expected[1] = 9
+0001 // expected[2] = 1
+0004 // expected[3] = 4
+0008 // expected[4] = 8
+0003 // expected[5] = 3
+0000 // expected[6] = 0
+000b // expected[7] = 11
+

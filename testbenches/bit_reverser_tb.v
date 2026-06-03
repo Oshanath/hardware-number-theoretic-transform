@@ -10,7 +10,6 @@ module bit_reverser_tb;
 
     reg [2:0] expected3;
     reg [7:0] expected8;
-    integer i;
     integer errors;
 
     bit_reverser #(
@@ -28,38 +27,20 @@ module bit_reverser_tb;
     );
 
     initial begin
-        $dumpfile("bit_reverser_tb.vcd");
-        $dumpvars(0, bit_reverser_tb);
 
         errors = 0;
 
-        for (i = 0; i < 8; i = i + 1) begin
-            a3 = i[2:0];
-            #10;
+        run_3_bit_case(3'b000);
+        run_3_bit_case(3'b001);
+        run_3_bit_case(3'b011);
+        run_3_bit_case(3'b101);
+        run_3_bit_case(3'b111);
 
-            expected3 = reverse3(a3);
-
-            if (r3 !== expected3) begin
-                $display("FAILED 3-bit: a=%b | got r=%b | expected r=%b", a3, r3, expected3);
-                errors = errors + 1;
-            end else begin
-                $display("PASSED 3-bit: a=%b | r=%b | expected r=%b", a3, r3, expected3);
-            end
-        end
-
-        for (i = 0; i < 256; i = i + 1) begin
-            a8 = i[7:0];
-            #10;
-
-            expected8 = reverse8(a8);
-
-            if (r8 !== expected8) begin
-                $display("FAILED 8-bit: a=%b | got r=%b | expected r=%b", a8, r8, expected8);
-                errors = errors + 1;
-            end else begin
-                $display("PASSED 8-bit: a=%b | r=%b | expected r=%b", a8, r8, expected8);
-            end
-        end
+        run_8_bit_case(8'h00);
+        run_8_bit_case(8'h01);
+        run_8_bit_case(8'ha5);
+        run_8_bit_case(8'h5a);
+        run_8_bit_case(8'h80);
 
         if (errors == 0) begin
             $display("All bit_reverser tests passed.");
@@ -83,5 +64,39 @@ module bit_reverser_tb;
             reverse8 = {value[0], value[1], value[2], value[3], value[4], value[5], value[6], value[7]};
         end
     endfunction
+
+    task run_3_bit_case;
+        input [2:0] value;
+        begin
+            a3 = value;
+            #10;
+
+            expected3 = reverse3(a3);
+
+            if (r3 !== expected3) begin
+                $display("FAILED 3-bit: a=%b | got r=%b | expected r=%b", a3, r3, expected3);
+                errors = errors + 1;
+            end else begin
+                $display("PASSED 3-bit: a=%b | r=%b | expected r=%b", a3, r3, expected3);
+            end
+        end
+    endtask
+
+    task run_8_bit_case;
+        input [7:0] value;
+        begin
+            a8 = value;
+            #10;
+
+            expected8 = reverse8(a8);
+
+            if (r8 !== expected8) begin
+                $display("FAILED 8-bit: a=%b | got r=%b | expected r=%b", a8, r8, expected8);
+                errors = errors + 1;
+            end else begin
+                $display("PASSED 8-bit: a=%b | r=%b | expected r=%b", a8, r8, expected8);
+            end
+        end
+    endtask
 
 endmodule

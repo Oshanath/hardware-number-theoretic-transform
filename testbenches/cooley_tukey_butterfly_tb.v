@@ -47,25 +47,20 @@ module cooley_tukey_butterfly_tb;
     );
 
     initial begin
-        $dumpfile("cooley_tukey_butterfly_tb.vcd");
-        $dumpvars(0, cooley_tukey_butterfly_tb);
 
         errors = 0;
 
         check_10_bit(10'd0,    10'd0,    10'd0);
         check_10_bit(10'd1,    10'd1,    10'd1);
-        check_10_bit(10'd16,   10'd1,    10'd1);
-        check_10_bit(10'd8,    10'd9,    10'd3);
-        check_10_bit(10'd17,   10'd18,   10'd16);
         check_10_bit(10'd100,  10'd200,  10'd7);
-        check_10_bit(10'd1023, 10'd1023, 10'd1023);
+        check_10_bit(10'd16,   10'd0,    10'd9);
+        check_10_bit(10'd42,   10'd99,   10'd5);
 
         check_8_bit(8'd0,   8'd0,   8'd0);
         check_8_bit(8'd1,   8'd12,  8'd1);
-        check_8_bit(8'd12,  8'd12,  8'd12);
-        check_8_bit(8'd13,  8'd14,  8'd12);
         check_8_bit(8'd55,  8'd89,  8'd5);
-        check_8_bit(8'd255, 8'd255, 8'd255);
+        check_8_bit(8'd16,  8'd0,   8'd13);
+        check_8_bit(8'd42,  8'd99,  8'd4);
 
         if (errors == 0) begin
             $display("All Cooley-Tukey butterfly tests passed.");

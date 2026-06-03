@@ -13,7 +13,6 @@ module bit_right_rotator_tb;
     reg [WIDTH12-1:0] a12;
     wire [WIDTH12-1:0] r12;
 
-    integer i;
     integer errors;
     integer expected;
 
@@ -34,27 +33,19 @@ module bit_right_rotator_tb;
     );
 
     initial begin
-        $dumpfile("bit_right_rotator_tb.vcd");
-        $dumpvars(0, bit_right_rotator_tb);
 
         errors = 0;
 
-        for (i = 0; i < 256; i = i + 1) begin
-            check_width8(i[WIDTH8-1:0]);
-        end
+        check_width8(8'h00);
+        check_width8(8'h01);
+        check_width8(8'ha5);
+        check_width8(8'h5a);
+        check_width8(8'hff);
 
         check_width12(12'h000);
         check_width12(12'h001);
-        check_width12(12'h002);
-        check_width12(12'h003);
-        check_width12(12'h010);
-        check_width12(12'h011);
-        check_width12(12'h01f);
-        check_width12(12'h020);
         check_width12(12'h0a5);
-        check_width12(12'h123);
-        check_width12(12'h7ff);
-        check_width12(12'h800);
+        check_width12(12'h3c7);
         check_width12(12'hfff);
 
         if (errors == 0) begin

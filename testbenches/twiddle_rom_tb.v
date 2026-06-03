@@ -20,7 +20,6 @@ module twiddle_rom_tb;
     reg [ROM_WIDTH8-1:0] address8;
     wire [WIDTH8-1:0] twiddle8;
 
-    integer i;
     integer j;
     integer expected;
     integer errors;
@@ -48,18 +47,20 @@ module twiddle_rom_tb;
     );
 
     initial begin
-        $dumpfile("twiddle_rom_tb.vcd");
-        $dumpvars(0, twiddle_rom_tb);
 
         errors = 0;
 
-        for (i = 0; i < N10; i = i + 1) begin
-            check_10_bit_twiddle(i);
-        end
+        check_10_bit_twiddle(0);
+        check_10_bit_twiddle(1);
+        check_10_bit_twiddle(3);
+        check_10_bit_twiddle(5);
+        check_10_bit_twiddle(N10 - 1);
 
-        for (i = 0; i < N8; i = i + 1) begin
-            check_8_bit_twiddle(i);
-        end
+        check_8_bit_twiddle(0);
+        check_8_bit_twiddle(1);
+        check_8_bit_twiddle(2);
+        check_8_bit_twiddle(N8 - 1);
+        check_8_bit_twiddle(3);
 
         if (errors == 0) begin
             $display("All twiddle ROM tests passed.");

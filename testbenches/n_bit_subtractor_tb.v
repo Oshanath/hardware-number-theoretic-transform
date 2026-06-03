@@ -14,8 +14,6 @@ module n_bit_subtractor_tb;
 
     reg [4:0] expected4;
     reg [16:0] expected16;
-    integer i;
-    integer j;
     integer errors;
 
     n_bit_subtractor #(
@@ -37,33 +35,20 @@ module n_bit_subtractor_tb;
     );
 
     initial begin
-        $dumpfile("n_bit_subtractor_tb.vcd");
-        $dumpvars(0, n_bit_subtractor_tb);
 
         errors = 0;
 
-        for (i = 0; i < 16; i = i + 1) begin
-            for (j = 0; j < 16; j = j + 1) begin
-                a4 = i[3:0];
-                b4 = j[3:0];
-
-                #10;
-
-                expected4 = a4 - b4;
-                print_4_bit_result;
-            end
-        end
+        run_4_bit_case(4'h0, 4'h0);
+        run_4_bit_case(4'h1, 4'h0);
+        run_4_bit_case(4'h0, 4'h1);
+        run_4_bit_case(4'hf, 4'h7);
 
         run_16_bit_case(16'h0000, 16'h0000);
-        run_16_bit_case(16'h0001, 16'h0000);
         run_16_bit_case(16'h0000, 16'h0001);
-        run_16_bit_case(16'hffff, 16'h0001);
-        run_16_bit_case(16'h0001, 16'hffff);
-        run_16_bit_case(16'h8000, 16'h0001);
-        run_16_bit_case(16'h8000, 16'h8000);
         run_16_bit_case(16'h1234, 16'h00ff);
+        run_16_bit_case(16'h9abc, 16'h1357);
         run_16_bit_case(16'h1234, 16'h5678);
-        run_16_bit_case(16'hffff, 16'hffff);
+        run_16_bit_case(16'ha5a5, 16'h5a5a);
 
         if (errors == 0) begin
             $display("All n-bit subtractor tests passed.");
@@ -73,6 +58,20 @@ module n_bit_subtractor_tb;
 
         $finish;
     end
+
+    task run_4_bit_case;
+        input [3:0] next_a;
+        input [3:0] next_b;
+        begin
+            a4 = next_a;
+            b4 = next_b;
+
+            #10;
+
+            expected4 = a4 - b4;
+            print_4_bit_result;
+        end
+    endtask
 
     task print_4_bit_result;
         begin

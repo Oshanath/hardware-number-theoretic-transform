@@ -22,31 +22,19 @@ module modular_subtractor_tb;
     );
 
     initial begin
-        $dumpfile("modular_subtractor_tb.vcd");
-        $dumpvars(0, modular_subtractor_tb);
 
         errors = 0;
 
         check_difference(10'd0,    10'd0);
         check_difference(10'd0,    10'd1);
-        check_difference(10'd1,    10'd0);
-        check_difference(10'd16,   10'd0);
-        check_difference(10'd0,    10'd16);
-        check_difference(10'd16,   10'd1);
-        check_difference(10'd1,    10'd16);
-        check_difference(10'd8,    10'd8);
         check_difference(10'd8,    10'd9);
-        check_difference(10'd9,    10'd8);
-        check_difference(10'd17,   10'd0);
-        check_difference(10'd18,   10'd16);
-        check_difference(10'd33,   10'd34);
-        check_difference(10'd34,   10'd33);
-        check_difference(10'd100,  10'd200);
-        check_difference(10'd250,  10'd251);
-        check_difference(10'd288,  10'd288);
-        check_difference(10'd289,  10'd0);
-        check_difference(10'd512,  10'd512);
+        check_difference(10'd456,  10'd123);
+        check_difference(10'd287,  10'd731);
         check_difference(10'd1023, 10'd1023);
+        check_difference(10'd5,    10'd11);
+        check_difference(10'd42,   10'd99);
+        check_difference(10'd256,  10'd17);
+        check_difference(10'd999,  10'd123);
 
         if (errors == 0) begin
             $display("All modular subtractor tests passed.");

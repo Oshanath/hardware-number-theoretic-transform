@@ -11,7 +11,6 @@ module full_subtractor_tb;
 
     reg expected_d;
     reg expected_bal_out;
-    integer i;
     integer errors;
 
     full_subtractor dut (
@@ -23,13 +22,37 @@ module full_subtractor_tb;
     );
 
     initial begin
-        $dumpfile("full_subtractor_tb.vcd");
-        $dumpvars(0, full_subtractor_tb);
 
         errors = 0;
 
-        for (i = 0; i < 8; i = i + 1) begin
-            {a, b, bal_in} = i[2:0];
+        run_case(1'b0, 1'b0, 1'b0);
+        run_case(1'b0, 1'b0, 1'b1);
+        run_case(1'b0, 1'b1, 1'b0);
+        run_case(1'b0, 1'b1, 1'b1);
+        run_case(1'b1, 1'b0, 1'b0);
+        run_case(1'b1, 1'b0, 1'b1);
+        run_case(1'b1, 1'b1, 1'b0);
+        run_case(1'b1, 1'b1, 1'b1);
+        run_case(1'b0, 1'b1, 1'b0);
+        run_case(1'b1, 1'b0, 1'b1);
+
+        if (errors == 0) begin
+            $display("All full subtractor tests passed.");
+        end else begin
+            $display("Full subtractor tests failed with %0d error(s).", errors);
+        end
+
+        $finish;
+    end
+
+    task run_case;
+        input next_a;
+        input next_b;
+        input next_bal_in;
+        begin
+            a = next_a;
+            b = next_b;
+            bal_in = next_bal_in;
 
             #10;
 
@@ -45,14 +68,6 @@ module full_subtractor_tb;
                     a, b, bal_in, bal_out, d);
             end
         end
-
-        if (errors == 0) begin
-            $display("All full subtractor tests passed.");
-        end else begin
-            $display("Full subtractor tests failed with %0d error(s).", errors);
-        end
-
-        $finish;
-    end
+    endtask
 
 endmodule
