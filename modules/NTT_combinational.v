@@ -1,5 +1,5 @@
 module ntt_combinational # (
-    parameter width = 10,
+    parameter width = 16,
     parameter modulus = 17,
     parameter root = 9,
     parameter n = 8

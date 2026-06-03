@@ -166,3 +166,24 @@ The mixed NTT is one such design that parallellizes each stage. So when `n=8`, t
 </div>
 
 There is also the [mixed Inverse NTT](modules/mixed/inverse_NTT.v) and the [polynomial multiplicator using the mixed NTT](modules/mixed/polynomial_multiplicator.v).
+
+## Analysis
+
+We can use the following commands to calculate how much hardware area is occupied by each NTT implementation. You will need to [install yosys on your system](https://yosyshq.net/yosys/download.html).
+
+1. For the sequential NTT `n=8` : 56364 Cells : 42 clock cycles
+```
+yosys -p "read_verilog -sv modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v; hierarchy -check -top NTT; synth -top NTT -noabc; stat -top NTT"
+```
+
+2. For the mixed NTT `n=8` : 63323 Cells : 3 clock cycles
+```
+yosys -p "read_verilog -sv modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/mixed/NTT.v; hierarchy -check -top NTT_mixed; synth -top NTT_mixed -noabc; stat -top NTT_mixed"
+```
+
+3. For the combinational NTT `n=8` : 148608 Cells : No Clock
+```
+yosys -p "read_verilog -sv modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/twiddle_rom.v modules/NTT_combinational.v; hierarchy -check -top ntt_combinational; synth -top ntt_combinational -noabc; stat -top ntt_combinational"
+```
+
+As you can see, more parallel the hardware is, less clock cycles it need, but more hardware area it requires, as well as more attention to propagation delays and timing issues.
