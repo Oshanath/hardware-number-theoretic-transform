@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module NTT # (
     parameter width = 16,
     parameter modulus = 17,
@@ -26,11 +28,25 @@ localparam [2:0] STATE_OUTPUT = 3'd4;
 // combinational
 reg [width-1:0] ram_addr_a, ram_addr_b, ram_data_a, ram_data_b, ram_out_a, ram_out_b;
 reg write;
-reg [width-1:0] bra_input, brb_input, bra_output, brb_output;
+reg [width-1:0] bra_input, brb_input;
+wire [width-1:0] bra_output, brb_output;
 reg [width-1:0] ctb_a, ctb_b, ctb_u, ctb_v;
 reg [width-1:0] gsb_a, gsb_b, gsb_u, gsb_v;
 reg [stages-1:0] twiddle_address;
 wire [width-1:0] twiddle_factor;
+wire [stages-1:0] ram_addr_a_sized;
+wire [stages-1:0] ram_addr_b_sized;
+wire [stages-1:0] bra_input_sized;
+wire [stages-1:0] brb_input_sized;
+wire [stages-1:0] bra_output_sized;
+wire [stages-1:0] brb_output_sized;
+
+assign ram_addr_a_sized = ram_addr_a[stages-1:0];
+assign ram_addr_b_sized = ram_addr_b[stages-1:0];
+assign bra_input_sized = bra_input[stages-1:0];
+assign brb_input_sized = brb_input[stages-1:0];
+assign bra_output = bra_output_sized;
+assign brb_output = brb_output_sized;
 
 // registers
 reg [2:0] state;
@@ -58,10 +74,10 @@ dual_port_ram # (
 ) ram (
     .clk(clk),
     .write(write),
-    .addr_a(ram_addr_a),
+    .addr_a(ram_addr_a_sized),
     .data_a(ram_data_a),
     .out_a(ram_out_a),
-    .addr_b(ram_addr_b),
+    .addr_b(ram_addr_b_sized),
     .data_b(ram_data_b),
     .out_b(ram_out_b)
 );
@@ -69,15 +85,15 @@ dual_port_ram # (
 bit_reverser # (
     .width(stages)
 ) bra (
-    .a(bra_input),
-    .r(bra_output)
+    .a(bra_input_sized),
+    .r(bra_output_sized)
 );
 
 bit_reverser # (
     .width(stages)
 ) brb (
-    .a(brb_input),
-    .r(brb_output)
+    .a(brb_input_sized),
+    .r(brb_output_sized)
 );
 
 ctb # (

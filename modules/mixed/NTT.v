@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module NTT_mixed # (
     parameter width = 16,
     parameter modulus = 17,
@@ -109,7 +111,7 @@ initial begin
     en_out <= 0;
 end
 
-always @(*) begin : comb_logic
+always_comb begin : comb_logic
     for (i = 0; i < n; i = i + 1) begin
         butterfly_results[i] = 0;
         next_stage_results[i] = stage_results[i];

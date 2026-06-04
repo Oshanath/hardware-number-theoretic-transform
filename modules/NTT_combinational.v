@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module ntt_combinational # (
     parameter width = 16,
     parameter modulus = 17,

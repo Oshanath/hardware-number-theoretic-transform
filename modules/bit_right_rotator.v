@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module bit_right_rotator # (
     parameter width = 16,
     parameter bits = 3

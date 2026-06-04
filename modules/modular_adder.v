@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module modular_adder # (
     parameter width = 10,
     parameter modulus = 17

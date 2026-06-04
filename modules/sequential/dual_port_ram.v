@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module dual_port_ram # (
     parameter width = 16,
     parameter size = 8

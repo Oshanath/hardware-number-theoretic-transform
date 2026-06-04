@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module polynomial_multiplicator # (
     parameter width = 16,
     parameter modulus = 17,

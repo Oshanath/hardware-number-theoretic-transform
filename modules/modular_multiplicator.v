@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module modular_multiplicator # (
     parameter width = 10,
     parameter modulus = 17
@@ -25,6 +27,7 @@ modular_reducer # (
 );
 
 wire [width*2-1:0] p_temp;
+wire [width*2-1:0] p_reduced;
 assign p_temp = a_reduced * b_reduced;
 
 modular_reducer # (
@@ -32,7 +35,9 @@ modular_reducer # (
     .modulus(modulus)
 ) mrp (
     .x(p_temp),
-    .xmodn(p)
+    .xmodn(p_reduced)
 );
+
+assign p = p_reduced[width-1:0];
 
 endmodule

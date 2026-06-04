@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module modular_reducer # (     
     parameter width = 10,
     parameter [width-1:0] modulus = 10'd17
