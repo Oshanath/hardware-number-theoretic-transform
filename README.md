@@ -4,13 +4,13 @@ Execute the following command to run the testbench for the NTT, which will read 
 
 **n=8:**
 ```
-iverilog -g2012 -s ntt_sequential_n8_tb -o build/ntt_sequential_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v testbenches/ntt_sequential_n8_tb.v; vvp build/ntt_sequential_n8_tb.vvp
+iverilog -g2012 -s ntt_sequential_n8_tb -o ntt_sequential_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v testbenches/ntt_sequential_n8_tb.v; vvp ntt_sequential_n8_tb.vvp
 ```
 
 **n=256:**
 
 ```
-iverilog -g2012 -s ntt_sequential_kyber_tb -o build/ntt_sequential_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v testbenches/ntt_sequential_kyber_tb.v; vvp build/ntt_sequential_kyber_tb.vvp
+iverilog -g2012 -s ntt_sequential_kyber_tb -o ntt_sequential_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v testbenches/ntt_sequential_kyber_tb.v; vvp ntt_sequential_kyber_tb.vvp
 ```
 
 You can find the complete design and implementation details below.
@@ -31,10 +31,10 @@ Also, the task only requires the implementation of a heavily sequential version 
 
 I started the implementation from the basic building blocks. In some instances I have opted for not using these but using the built-in modules from Verilog. I will clearly mention them with each module.
 
-All modules are parameterized, so generating hardware with larger bit widths, or different moduli is as trivial as finding the values of the parameters. Following is a list of parameters.
+All modules are parameterized, so generating hardware with larger bit widths, or different moduli is as trivial as finding valid values of the parameters. Following is a list of parameters.
 - bit width
 - modulus
-- root (root of unity at k=0)
+- root (primitive n-th root of unity)
 - n (Transform size)
 - n_inverse (Inverse of n modulo the modulus)
 
@@ -81,8 +81,8 @@ iverilog -g2012 -s modular_subtractor_tb -o modular_subtractor_tb.vvp modules/fu
 This is the naive approach to implementing a multiplier. It calculates partial products and adds them using a series of n-bit adders, like when multiplying by hand.
 
 Although this module works, I will not use it for further implementations due to the following reasons.
-- By simply using `*` Verilog generates a multiplier circuit that is optimized by techniques such as Karatsuba multiplication and many others, that are much better than this version.
-- Using `*` for multiplication makes the verilog code much simpler to read as there is one less module to instantiate. Since this task is about NTT, the multiplier makes little difference.
+- By simply using `*` the synthesis tool can infer a multiplier circuit that is usually much better than this version.
+- Using `*` for multiplication makes the Verilog code much simpler to read as there is one less module to instantiate. Since this task is about NTT, the multiplier makes little difference.
 ```
 iverilog -g2012 -s n_bit_multiplier_tb -o n_bit_multiplier_tb.vvp modules/full_adder.v modules/n_bit_adder.v modules/n_bit_multiplier.v testbenches/n_bit_multiplier_tb.v; vvp n_bit_multiplier_tb.vvp
 ```
@@ -108,9 +108,9 @@ iverilog -g2012 -s cooley_tukey_butterfly_tb -o cooley_tukey_butterfly_tb.vvp mo
 The inverse of the Cooley-Tukey Butterfly. Equation-wise, the actual inverse would be
 ```
 a = (u+v)/2
-b = (u-v)/2ω
+b = (u-v)/(2ω)
 ```
-But in the actual implementation we omit the division by 2. At the end of the iNTT process, we multiply the results by `n_inverse` which is equivalent to dividing by 2 in each step. 
+But in the actual implementation we omit the division by 2. At the end of the iNTT process, we multiply the results by `n_inverse` which accounts for the omitted division by 2 in every stage.
 
 ```
 iverilog -g2012 -s gentleman_sande_butterfly_tb -o gentleman_sande_butterfly_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/gentleman-sande-butterfly.v testbenches/gentleman_sande_butterfly_tb.v; vvp gentleman_sande_butterfly_tb.vvp
@@ -123,7 +123,7 @@ iverilog -g2012 -s twiddle_rom_tb -o twiddle_rom_tb.vvp modules/twiddle_rom.v te
 ```
 
 #### [Dual Port RAM](modules/sequential/dual_port_ram.v)
-A set of registers with 2 IO ports so it's possible to either read or write to/from 2 memory addresses at once. This is useful because butterfly units use 2 values as input at once and outputs 2 values.
+A set of registers with 2 IO ports so it's possible to read from 2 memory addresses, or write to 2 memory addresses, at once. This is useful because butterfly units use 2 values as input at once and outputs 2 values.
 ```
 iverilog -g2012 -s dual_port_ram_tb -o dual_port_ram_tb.vvp modules/sequential/dual_port_ram.v testbenches/dual_port_ram_tb.v; vvp dual_port_ram_tb.vvp
 ```
@@ -141,6 +141,8 @@ Regenerate them with:
 ```
 python testbenches/generate_test_data.py
 ```
+
+The above python file generates test case inputs and outputs by using a simple, unoptimized implementation of NTT and polynomial multiplication.
 
 Each NTT data file has 20 cases: 15 forward NTT cases followed by 5 inverse NTT cases. Each polynomial multiplication data file has 20 cases. The top-level benches are split by implementation style and size:
 
@@ -164,13 +166,13 @@ This sequential module will convert a polynomial from the coefficient representa
 
 **n=8:**
 ```
-iverilog -g2012 -s ntt_sequential_n8_tb -o build/ntt_sequential_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v testbenches/ntt_sequential_n8_tb.v; vvp build/ntt_sequential_n8_tb.vvp
+iverilog -g2012 -s ntt_sequential_n8_tb -o ntt_sequential_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v testbenches/ntt_sequential_n8_tb.v; vvp ntt_sequential_n8_tb.vvp
 ```
 
 **n=256:**
 
 ```
-iverilog -g2012 -s ntt_sequential_kyber_tb -o build/ntt_sequential_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v testbenches/ntt_sequential_kyber_tb.v; vvp build/ntt_sequential_kyber_tb.vvp
+iverilog -g2012 -s ntt_sequential_kyber_tb -o ntt_sequential_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v testbenches/ntt_sequential_kyber_tb.v; vvp ntt_sequential_kyber_tb.vvp
 ```
 
 For simplicity's sake I will only explain the forward case, but the inverse case is similar. It's just a matter of swapping the Cooley-Tukey Butterflies with the Gentleman-Sande Butterflies, inverting the logic, and multiplying by `n_inverse` at the end.
@@ -188,7 +190,7 @@ This NTT works via a FSM (Finite State Machine). The states are as follows.
 
 There are some address generation logic that goes into the design of an NTT as the data order changes each stage, as well as before and after input.
 
-1. I start thinking about the logic from the leaves of the recursion tree of NTT up to the root. So the first stage is the leaves. The original data must be re-ordered to be in bit-reverse order. Then the even and odd parts of the first stage are next to each other. Rather than doing the re-ordering explicitly, I have preemtpively stored the input values in the RAM in the bit-reverse order. This is a one time operation, after which we can process each stage, one by one. For reversing the bits I have created a [harware bit reverser](modules/bit_reverser.v), but a function would have worked more easily.
+1. I start thinking about the logic from the leaves of the recursion tree of NTT up to the root. So the first stage is the leaves. The original data must be re-ordered to be in bit-reverse order. Then the even and odd parts of the first stage are next to each other. Rather than doing the re-ordering explicitly, I have preemptively stored the input values in the RAM in the bit-reverse order. This is a one time operation, after which we can process each stage, one by one. For reversing the bits I have created a [hardware bit reverser](modules/bit_reverser.v), but a function would have worked more easily.
 
 2. Next, for each stage, we apply the butterflies, then re-order the results. This can be done in a multitude of ways, the approach I have found is as follows. For `n=8` each stage has 4 butterflies. Apply them in order and store the values in order. Then re-order by rotating right the `i` least significant bits of the index, where `i` is the current stage. Bit rotation is done via a function.
 
@@ -204,14 +206,14 @@ The workings for Twiddle Index Generation Logic are as follows.
 
 ![Twiddle Index Generation Logic workings](images/twiddle_index_generation_logic.png)
 
-You can find below a simplfied data-path diagram of the forward NTT and the inverse NTT.
+You can find below a simplified data-path diagram of the forward NTT and the inverse NTT.
 
 <div align="center">
 <img src="images/sequential_NTT_diagram_forward.png" alt="Forward NTT block diagram" width="70%">
 </div>
 
 <div align="center">
-<img src="images/sequential_NTT_diagram_inverse.png" alt="Forward NTT block diagram" width="80%">
+<img src="images/sequential_NTT_diagram_inverse.png" alt="Inverse NTT block diagram" width="80%">
 </div>
 
 #### [Sequential Polynomial Multiplicator](modules/sequential/polynomial_multiplicator_sequential.v)
@@ -220,13 +222,13 @@ This will use the sequential NTT module and multiply 2 polynomials in a cyclic p
 
 **n=8:**
 ```
-iverilog -g2012 -s poly_sequential_n8_tb -o build/poly_sequential_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v modules/sequential/polynomial_multiplicator_sequential.v testbenches/poly_sequential_n8_tb.v; vvp build/poly_sequential_n8_tb.vvp
+iverilog -g2012 -s poly_sequential_n8_tb -o poly_sequential_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v modules/sequential/polynomial_multiplicator_sequential.v testbenches/poly_sequential_n8_tb.v; vvp poly_sequential_n8_tb.vvp
 ```
 
 **n=256:**
 
 ```
-iverilog -g2012 -s poly_sequential_kyber_tb -o build/poly_sequential_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v modules/sequential/polynomial_multiplicator_sequential.v testbenches/poly_sequential_kyber_tb.v; vvp build/poly_sequential_kyber_tb.vvp
+iverilog -g2012 -s poly_sequential_kyber_tb -o poly_sequential_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/bit_reverser.v modules/twiddle_rom.v modules/sequential/dual_port_ram.v modules/sequential/NTT.v modules/sequential/polynomial_multiplicator_sequential.v testbenches/poly_sequential_kyber_tb.v; vvp poly_sequential_kyber_tb.vvp
 ```
 
 1. STATE_IDLE - Waits until the input enable signal is `1`.
@@ -239,7 +241,7 @@ iverilog -g2012 -s poly_sequential_kyber_tb -o build/poly_sequential_kyber_tb.vv
 8. STATE_WAIT_INV_TRANS - Waits until the inversion is done.
 
 <div align="center">
-<img src="images/sequential_polynomial_multiplicator.png" alt="Forward NTT block diagram" width="70%">
+<img src="images/sequential_polynomial_multiplicator.png" alt="Sequential polynomial multiplicator block diagram" width="70%">
 </div>
 
 #### [Combinational NTT](modules/NTT_combinational.v)
@@ -248,16 +250,16 @@ I created this module for educational purposes. I started with this because it a
 
 **n=8:**
 ```
-iverilog -g2012 -s ntt_combinational_n8_tb -o build/ntt_combinational_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/NTT_combinational.v modules/inverse_NTT_combinational.v testbenches/ntt_combinational_n8_tb.v; vvp build/ntt_combinational_n8_tb.vvp
+iverilog -g2012 -s ntt_combinational_n8_tb -o ntt_combinational_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/NTT_combinational.v modules/inverse_NTT_combinational.v testbenches/ntt_combinational_n8_tb.v; vvp ntt_combinational_n8_tb.vvp
 ```
 
 **n=256:**
 
 ```
-iverilog -g2012 -s ntt_combinational_kyber_tb -o build/ntt_combinational_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/NTT_combinational.v modules/inverse_NTT_combinational.v testbenches/ntt_combinational_kyber_tb.v; vvp build/ntt_combinational_kyber_tb.vvp
+iverilog -g2012 -s ntt_combinational_kyber_tb -o ntt_combinational_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/NTT_combinational.v modules/inverse_NTT_combinational.v testbenches/ntt_combinational_kyber_tb.v; vvp ntt_combinational_kyber_tb.vvp
 ```
 
-There is absolutely no hardware re-using with this approach so the final synthesized hardware has extremely high area.
+There is absolutely no hardware reuse with this approach so the final synthesized hardware has extremely high area.
 
 When this design is synthesized to the scale of Kyber, with a Transform size of 256, each stage has 128 butterflies, and there are 8 stages. That's a lot of hardware.
 
@@ -269,35 +271,35 @@ The [combinational inverse NTT](modules/inverse_NTT_combinational.v) is a separa
 
 **n=8:**
 ```
-iverilog -g2012 -s poly_combinational_n8_tb -o build/poly_combinational_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/NTT_combinational.v modules/inverse_NTT_combinational.v modules/polynomial_multiplicator.v testbenches/poly_combinational_n8_tb.v; vvp build/poly_combinational_n8_tb.vvp
+iverilog -g2012 -s poly_combinational_n8_tb -o poly_combinational_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/NTT_combinational.v modules/inverse_NTT_combinational.v modules/polynomial_multiplicator.v testbenches/poly_combinational_n8_tb.v; vvp poly_combinational_n8_tb.vvp
 ```
 
 **n=256:**
 
 ```
-iverilog -g2012 -s poly_combinational_kyber_tb -o build/poly_combinational_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/NTT_combinational.v modules/inverse_NTT_combinational.v modules/polynomial_multiplicator.v testbenches/poly_combinational_kyber_tb.v; vvp build/poly_combinational_kyber_tb.vvp
+iverilog -g2012 -s poly_combinational_kyber_tb -o poly_combinational_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/NTT_combinational.v modules/inverse_NTT_combinational.v modules/polynomial_multiplicator.v testbenches/poly_combinational_kyber_tb.v; vvp poly_combinational_kyber_tb.vvp
 ```
 
 #### [Mixed NTT](modules/mixed/NTT.v)
 
 The sequential NTT can be considered one end of a spectrum. It does everything sequentially. Reads data, performs calculations, outputs data, all one by one. But this is very efficient with regards to hardware area, but inefficient with regards to latency. (Throughput can be somewhat increased by pipelining.)
 
+On the other hand the combinational NTT has no clocked stages and does all its work through propagation. But this is very inefficient with regards to hardware area, and very tricky to use due to propagation delays.
+
+Any hardware implementation we do falls somewhere within this spectrum. Which parts work sequentially and which parts work in parallel depends on the design.
+
+The mixed NTT is one such design that parallelizes each stage. So when `n=8`, there are 3 stages, it completes the conversion in 3 clock cycles. It uses 4 butterfly units among other hardware. The 3 clock cycles are not counting IO, but this is still much better with regards to latency when compared to the pure sequential design. In the Kyber scale, `n=256`, we need 128 butterflies. This is still better than `128*8` butterflies needed in the pure combinational approach. Whether this approach is still practically valid or not depends on other engineering constraints of the specific scenario.
+
 **n=8:**
 ```
-iverilog -g2012 -s ntt_mixed_n8_tb -o build/ntt_mixed_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/mixed/NTT.v modules/mixed/inverse_NTT.v testbenches/ntt_mixed_n8_tb.v; vvp build/ntt_mixed_n8_tb.vvp
+iverilog -g2012 -s ntt_mixed_n8_tb -o ntt_mixed_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/mixed/NTT.v modules/mixed/inverse_NTT.v testbenches/ntt_mixed_n8_tb.v; vvp ntt_mixed_n8_tb.vvp
 ```
 
 **n=256:**
 
 ```
-iverilog -g2012 -s ntt_mixed_kyber_tb -o build/ntt_mixed_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/mixed/NTT.v modules/mixed/inverse_NTT.v testbenches/ntt_mixed_kyber_tb.v; vvp build/ntt_mixed_kyber_tb.vvp
+iverilog -g2012 -s ntt_mixed_kyber_tb -o ntt_mixed_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/mixed/NTT.v modules/mixed/inverse_NTT.v testbenches/ntt_mixed_kyber_tb.v; vvp ntt_mixed_kyber_tb.vvp
 ```
-
-On the other hand the combinational NTT only takes one pulse to do all its work. But this is very inefficient with regards to hardware area, and very tricky to use due to propagation delays.
-
-Any hardware implementation we do falls somwhere within this spectrum. Which parts work sequentially and which parts work parallelly depends on the design.
-
-The mixed NTT is one such design that parallellizes each stage. So when `n=8`, there are 3 stages, it completes the conversion in 3 clock cycles. It uses 4 butterfly units among other hardware. The 3 clock cycles are not counting IO, but this is still much better with regards to latency when compared to the pure sequential design. In the Kyber scale, `n=256`, we need 128 butterflies. This is still better than `128*8` butterflies needed in the pure combinational approach. Whether this approach is still practically valid or not depends on other engineering constraints of the specific scenario.
 
 <div align="center">
 <img src="images/mixed_NTT.png" alt="Mixed NTT diagram" width="60%">
@@ -307,20 +309,20 @@ There is also the [mixed Inverse NTT](modules/mixed/inverse_NTT.v) and the [poly
 
 **n=8:**
 ```
-iverilog -g2012 -s poly_mixed_n8_tb -o build/poly_mixed_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/mixed/NTT.v modules/mixed/inverse_NTT.v modules/mixed/polynomial_multiplicator.v testbenches/poly_mixed_n8_tb.v; vvp build/poly_mixed_n8_tb.vvp
+iverilog -g2012 -s poly_mixed_n8_tb -o poly_mixed_n8_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/mixed/NTT.v modules/mixed/inverse_NTT.v modules/mixed/polynomial_multiplicator.v testbenches/poly_mixed_n8_tb.v; vvp poly_mixed_n8_tb.vvp
 ```
 
 **n=256:**
 
 ```
-iverilog -g2012 -s poly_mixed_kyber_tb -o build/poly_mixed_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/mixed/NTT.v modules/mixed/inverse_NTT.v modules/mixed/polynomial_multiplicator.v testbenches/poly_mixed_kyber_tb.v; vvp build/poly_mixed_kyber_tb.vvp
+iverilog -g2012 -s poly_mixed_kyber_tb -o poly_mixed_kyber_tb.vvp modules/full_adder.v modules/full_subtractor.v modules/n_bit_adder.v modules/n_bit_subtractor.v modules/modular_reducer.v modules/modular_adder.v modules/modular_subtractor.v modules/modular_multiplicator.v modules/cooley_tukey_butterfly.v modules/gentleman-sande-butterfly.v modules/twiddle_rom.v modules/mixed/NTT.v modules/mixed/inverse_NTT.v modules/mixed/polynomial_multiplicator.v testbenches/poly_mixed_kyber_tb.v; vvp poly_mixed_kyber_tb.vvp
 ```
 
 ## Analysis
 
 We can use the following commands to calculate how much hardware area is occupied by each NTT implementation. You will need to [install yosys on your system](https://yosyshq.net/yosys/download.html).
 
-Please note that the hardware area of these modules are higher than desirable because they haven't been optimized properly. As the task is about the understanding cryptographical algorithms and implementing them in hardware, I did not focus too much on optimization. But it is simply a matter of time.
+Please note that the hardware area of these modules are higher than desirable because they haven't been optimized properly. As the task is about the understanding cryptographic algorithms and implementing them in hardware, I did not focus too much on optimization. But it is simply a matter of investing time.
 
 1. For the sequential NTT `n=8` : 56364 Cells : 24 clock cycles
 ```
